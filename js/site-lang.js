@@ -6,6 +6,15 @@
 // picked on either side carries over to the other.
 (function () {
   const SUPPORTED_LANGS = ['en', 'fr', 'es', 'ar', 'ti', 'am', 'ht', 'so', 'my', 'prs', 'ne', 'sw', 'yo', 'uk', 'vi'];
+  // Each language's own name, for the picker menu — hardcoded rather than
+  // fetching all 15 data/i18n/*.json files just to read one field out of
+  // each (the actual strings for the *selected* language still load
+  // lazily via loadLang()/setLang() below).
+  const LANG_NAMES = {
+    en: 'English', fr: 'Français', es: 'Español', ar: 'العربية', ti: 'ትግርኛ', am: 'አማርኛ',
+    ht: 'Kreyòl Ayisyen', so: 'Soomaali', my: 'မြန်မာ', prs: 'دری', ne: 'नेपाली',
+    sw: 'Kiswahili', yo: 'Yorùbá', uk: 'Українська', vi: 'Tiếng Việt',
+  };
   const cache = new Map();
 
   function detectDefaultLang() {
@@ -57,19 +66,16 @@
     const menu = wrap.querySelector('#navLangMenu');
     const close = () => { menu.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); };
 
-    (async () => {
-      for (const lang of SUPPORTED_LANGS) {
-        const data = await loadLang(lang);
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.dataset.lang = lang;
-        b.setAttribute('role', 'menuitem');
-        b.textContent = data.langName;
-        b.addEventListener('click', () => { setLang(lang); close(); });
-        menu.appendChild(b);
-      }
-      setLang(detectDefaultLang(), false);
-    })();
+    SUPPORTED_LANGS.forEach(lang => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.lang = lang;
+      b.setAttribute('role', 'menuitem');
+      b.textContent = LANG_NAMES[lang] || lang;
+      b.addEventListener('click', () => { setLang(lang); close(); });
+      menu.appendChild(b);
+    });
+    setLang(detectDefaultLang(), false);
 
     btn.addEventListener('click', () => {
       const open = menu.classList.toggle('open');

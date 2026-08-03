@@ -28,8 +28,8 @@ window.VALORE_ARTISTS = {
       {
         heading: { en: "A New Room in the Gallery", native: "A New Room in the Gallery" },
         body: {
-          en: "Bahati, who signs her canvases BHTart, paints her way into art history rather than around it: her reimagining of Vermeer's Girl with a Pearl Earring keeps the composition's every hallmark, the turned head, the parted lips, the improbable earring catching the light, and recasts its subject as a young Black woman, gold hoop through her nose instead of pearl in her ear. It's less a copy than a claim: the same technical control the old masters are praised for, turned toward a face the canon rarely painted with that much care. This room gathers seven of her paintings, spanning that kind of art-historical conversation, scenes of Congolese heritage carried through family and dance, and quieter, more interior work about calm, power, and time.",
-          native: "Bahati, who signs her canvases BHTart, paints her way into art history rather than around it: her reimagining of Vermeer's Girl with a Pearl Earring keeps the composition's every hallmark, the turned head, the parted lips, the improbable earring catching the light, and recasts its subject as a young Black woman, gold hoop through her nose instead of pearl in her ear. It's less a copy than a claim: the same technical control the old masters are praised for, turned toward a face the canon rarely painted with that much care. This room gathers seven of her paintings, spanning that kind of art-historical conversation, scenes of Congolese heritage carried through family and dance, and quieter, more interior work about calm, power, and time."
+          en: "Bahati, who signs her canvases BHTart, paints her way into art history rather than around it: her reimagining of Vermeer's Girl with a Pearl Earring keeps the composition's every hallmark, the turned head, the parted lips, the improbable earring catching the light, and recasts its subject as a young Black woman, gold hoop through her nose instead of pearl in her ear. It's less a copy than a claim: the same technical control the old masters are praised for, turned toward a face the canon rarely painted with that much care. This room gathers fourteen of her paintings, spanning that kind of art-historical conversation, scenes of Congolese heritage carried through family and dance, quieter, more interior work about calm, power, and time, and further pieces ranging into regal fantasy portraiture, environmental advocacy, and nature study.",
+          native: "Bahati, who signs her canvases BHTart, paints her way into art history rather than around it: her reimagining of Vermeer's Girl with a Pearl Earring keeps the composition's every hallmark, the turned head, the parted lips, the improbable earring catching the light, and recasts its subject as a young Black woman, gold hoop through her nose instead of pearl in her ear. It's less a copy than a claim: the same technical control the old masters are praised for, turned toward a face the canon rarely painted with that much care. This room gathers fourteen of her paintings, spanning that kind of art-historical conversation, scenes of Congolese heritage carried through family and dance, quieter, more interior work about calm, power, and time, and further pieces ranging into regal fantasy portraiture, environmental advocacy, and nature study."
         }
       },
       {
@@ -51,10 +51,17 @@ window.VALORE_ARTISTS = {
       { src: "img/artists/bahati/1.jpg", credit: "“Girl with a Pearl Earring, Reimagined” · original painting by Bahati (BHTart)" },
       { src: "img/artists/bahati/2.jpg", credit: "“Braiding Traditions” · original painting by Bahati (BHTart)" },
       { src: "img/artists/bahati/3.jpg", credit: "“Equity” · original painting by Bahati (BHTart)" },
-      { src: "img/artists/bahati/4.jpg", credit: "“Dancers of the Congo / Daughter of the Continent” · one canvas, two halves — original painting by Bahati (BHTart)" },
+      { src: "img/artists/bahati/4.jpg", credit: "“Dancers of the Congo / Daughter of the Continent” · original painting by Bahati (BHTart)" },
       { src: "img/artists/bahati/5.jpg", credit: "“Sisters” · original painting by Bahati (BHTart)" },
       { src: "img/artists/bahati/6.jpg", credit: "“Inner Calm” · original painting by Bahati (BHTart)" },
-      { src: "img/artists/bahati/7.jpg", credit: "“Strings of Time” · original painting by Bahati (BHTart)" }
+      { src: "img/artists/bahati/7.jpg", credit: "“Strings of Time” · original painting by Bahati (BHTart)" },
+      { src: "img/artists/bahati/8.jpg", credit: "“Keep Earth's Environment Clean, Safe, and Healthy” · original artwork by Bahati (BHTart)" },
+      { src: "img/artists/bahati/9.jpg", credit: "“Shielded” · original painting by Bahati (BHTart)" },
+      { src: "img/artists/bahati/10.jpg", credit: "“Just Another Day in Paradise” · original painting by Bahati (BHTart)", large: true },
+      { src: "img/artists/bahati/11.jpg", credit: "“Veiled in Red” · original painting by Bahati (BHTart)" },
+      { src: "img/artists/bahati/12.jpg", credit: "“Crowned in Kente” · original painting by Bahati (BHTart)", large: true },
+      { src: "img/artists/bahati/13.jpg", credit: "“Coronation” · original painting by Bahati (BHTart)" },
+      { src: "img/artists/bahati/14.jpg", credit: "“Autumn Watch” · original painting by Bahati (BHTart)" }
     ]
   },
 

@@ -233,6 +233,15 @@ img,svg{display:block; max-width:100%;}
 @media (max-width:640px){
   .nav-lang-btn span{display:none;}
   .nav-lang-btn{padding:7px 10px;}
+  /* .site-nav had no mobile treatment at all — brand text and nav links
+     (site-lang.js appends the language switcher as .nav-links' own last
+     child, so it wraps here too) fought for the same row and visibly
+     overlapped below ~640px. Dropping the subtitle and letting the whole
+     link row wrap onto its own centered line keeps everything legible
+     instead of colliding. */
+  .brand small{display:none;}
+  .site-nav{flex-wrap:wrap; row-gap:10px; padding:14px clamp(16px,4vw,56px);}
+  .nav-links{width:100%; justify-content:center; gap:16px 18px;}
 }
 .nav-cta{
   border:1px solid rgba(42,29,22,.25); border-radius:999px;

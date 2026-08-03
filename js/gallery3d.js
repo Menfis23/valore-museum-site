@@ -68,6 +68,13 @@ function buildRooms() {
         title: titleFromCredit(p.credit),
         source: sourceFromCredit(p.credit),
         credit: p.credit,
+        // A handful of source photos are casual snapshots (a painting on an
+        // easel, lots of surrounding room in frame) rather than a clean
+        // crop of just the artwork — cropping them to the standard frame
+        // size makes the actual piece nearly invisible. `large: true` routes
+        // those onto their own big back-wall placement instead of the
+        // regular grid; see featureSlotsFor()/showRoom().
+        large: !!p.large,
         // Each piece carries one of the room's exhibition texts, so the
         // reading is the site's real writing rather than invented captions.
         section: sections.length ? sections[i % sections.length] : null
@@ -89,6 +96,7 @@ const ROOM_W = 15, ROOM_D = 11, ROOM_H = 4.2;
 const EYE = 1.62;
 const HANG_Y = 1.58;                 // museum standard: centre of the work about 1.55m
 const BOUND_X = ROOM_W / 2 - 0.9, BOUND_Z = ROOM_D / 2 - 0.9;
+const SHADOW_BUDGET = 8;             // see buildPiece()'s spot.castShadow — texture-unit limit guard
 const isCoarse = window.matchMedia('(pointer: coarse)').matches;
 
 const stage = document.getElementById('stage');
@@ -258,9 +266,11 @@ function labelTexture(title, sub) {
   return t;
 }
 
-// Left wall front to back, back wall left to right, right wall back to front
-function slotsFor(n) {
-  const back = Math.min(4, Math.max(2, Math.ceil(n / 2)));
+// Left wall front to back, back wall left to right, right wall back to front.
+// includeBack=false skips the back wall entirely (used when a room has its
+// own featureSlotsFor() pieces claiming that wall instead).
+function slotsFor(n, includeBack = true) {
+  const back = includeBack ? Math.min(4, Math.max(2, Math.ceil(n / 2))) : 0;
   const rest = Math.max(0, n - back);
   const left = Math.ceil(rest / 2), right = rest - left;
   const out = [];
@@ -270,10 +280,42 @@ function slotsFor(n) {
   add('left', left); add('back', back); add('right', right);
   return out;
 }
+// Large-format placements (see the `large` flag in buildRooms) claim the
+// centre of the back wall, wider-spaced than the standard grid so their
+// bigger frames don't collide. flankCount standard-size pieces (0-2) fill
+// the rest of that wall on either side, rather than leaving a big blank
+// stretch either side of the large pieces while the side walls get crowded.
+function backWallSlots(largeCount, flankCount) {
+  const spacing = 4.8;
+  const largeSpread = largeCount > 1 ? (largeCount - 1) * spacing : 0;
+  const maxHalf = (ROOM_W - 2.4) / 2;
+  const flankX = Math.min(maxHalf - 1.1, largeSpread / 2 + 3.1);
+  const out = { large: [], flank: [] };
+  for (let i = 0; i < largeCount; i++) {
+    const t = largeCount > 1 ? i / (largeCount - 1) : 0.5;
+    out.large.push({ wall: 'back', x: (t - 0.5) * largeSpread });
+  }
+  if (flankCount >= 1) out.flank.push({ wall: 'back', x: -flankX });
+  if (flankCount >= 2) out.flank.push({ wall: 'back', x: flankX });
+  return out;
+}
 function slotTransform(slot) {
-  // Fixed 3.1m between centres. Two works on a 15m wall should not sit 6m apart.
-  const spread = (slot.count - 1) * 3.1;
-  const off = (slot.t - 0.5) * spread;
+  // A slot either carries an explicit x offset (backWallSlots, above) or a
+  // t/count pair to distribute evenly (the standard grid, below). Either
+  // way the result is capped to the wall's actual usable length (ROOM_W for
+  // 'back', ROOM_D for the side walls) — a room with enough pieces on one
+  // wall (Bahati's 12-piece grid, 6 per side wall, did this) would otherwise
+  // compute a spread wider than the actual wall, pushing the outermost
+  // pieces past the room's physical bounds where they're
+  // unreachable/invisible. Capping packs pieces tighter instead.
+  const maxSpread = (slot.wall === 'back' ? ROOM_W : ROOM_D) - 2.4;
+  let off;
+  if (slot.x !== undefined) {
+    off = Math.max(-maxSpread / 2, Math.min(maxSpread / 2, slot.x));
+  } else {
+    const spread = Math.min((slot.count - 1) * (slot.spacing || 3.1), maxSpread);
+    off = (slot.t - 0.5) * spread;
+  }
   if (slot.wall === 'back')
     return { pos: new THREE.Vector3(off, HANG_Y, -ROOM_D / 2 + 0.07), rotY: 0, normal: new THREE.Vector3(0, 0, 1) };
   if (slot.wall === 'left')
@@ -281,7 +323,7 @@ function slotTransform(slot) {
   return { pos: new THREE.Vector3(ROOM_W / 2 - 0.07, HANG_Y, off), rotY: -Math.PI / 2, normal: new THREE.Vector3(-1, 0, 0) };
 }
 
-function buildPiece(data, tex, slot, index) {
+function buildPiece(data, tex, slot, index, opts = {}) {
   const { pos, rotY, normal } = slotTransform(slot);
   const g = new THREE.Group();
   g.position.copy(pos);
@@ -289,9 +331,10 @@ function buildPiece(data, tex, slot, index) {
 
   const img = tex.image;
   const aspect = (img && img.width && img.height) ? img.width / img.height : 1;
-  let h = 1.42, w = h * aspect;
-  if (w > 2.15) { w = 2.15; h = w / aspect; }
-  if (h > 1.75) { h = 1.75; w = h * aspect; }
+  const baseH = opts.baseH || 1.42, maxW = opts.maxW || 2.15, maxH = opts.maxH || 1.75;
+  let h = baseH, w = h * aspect;
+  if (w > maxW) { w = maxW; h = w / aspect; }
+  if (h > maxH) { h = maxH; w = h * aspect; }
 
   const B = 0.075, D = 0.07;
   // Frame box sits entirely behind the canvas, front face at z=0 and the
@@ -335,7 +378,14 @@ function buildPiece(data, tex, slot, index) {
   const spot = new THREE.SpotLight(0xfff2e0, 20, 9, Math.PI / 7, 0.75, 1.4);
   spot.position.copy(fixturePos);
   spot.target.position.copy(pos);
-  if (!isCoarse) {
+  // Every shadow-casting light adds a shadow-map sampler to the fragment
+  // shader; rooms with a lot of pieces (Bahati is now 14) can push the total
+  // past WebGL's guaranteed-minimum 16 texture image units and fail to
+  // compile ("FRAGMENT shader texture image units count exceeds
+  // MAX_TEXTURE_IMAGE_UNITS"), especially on lower-end/integrated GPUs.
+  // Capping shadows to the first SHADOW_BUDGET pieces keeps every piece lit
+  // while staying well under that limit — the rest just don't cast a shadow.
+  if (!isCoarse && index < SHADOW_BUDGET) {
     spot.castShadow = true;
     spot.shadow.mapSize.set(512, 512);
     spot.shadow.bias = -0.001;
@@ -396,6 +446,14 @@ function clearRoom() {
   }
 }
 
+function updateCaptionCount() {
+  const room = ROOMS[currentRoom];
+  if (!room) return;
+  const s = uiStrings || {};
+  const suffix = room.pieces.length === 1 ? s['room.workOnView'] : s['room.worksOnView'];
+  document.getElementById('captionCount').textContent = room.pieces.length + ' ' + (suffix || 'works on view');
+}
+
 let switching = false;
 async function showRoom(index, opts = {}) {
   if (switching || index === currentRoom || !ROOMS[index]) return;
@@ -406,9 +464,38 @@ async function showRoom(index, opts = {}) {
   clearRoom();
   walls.forEach(w => w.material.color.set(room.wall));
 
-  const slots = slotsFor(room.pieces.length);
-  const texes = await Promise.all(room.pieces.map(p => loadTexture(p.src)));
-  texes.forEach((tex, i) => { if (tex) buildPiece(room.pieces[i], tex, slots[i], i); });
+  const gridPieces = room.pieces.filter(p => !p.large);
+  const featurePieces = room.pieces.filter(p => p.large);
+
+  // When a room has large-format pieces, they don't fill the whole back
+  // wall — flank them with up to 2 standard-size pieces instead of leaving
+  // the rest of that wall empty while the side walls get overcrowded.
+  const backFlankCount = featurePieces.length ? Math.min(2, gridPieces.length) : 0;
+  const backFlankPieces = gridPieces.slice(0, backFlankCount);
+  const sideGridPieces = gridPieces.slice(backFlankCount);
+
+  const slots = slotsFor(sideGridPieces.length, featurePieces.length === 0);
+  const texes = await Promise.all(sideGridPieces.map(p => loadTexture(p.src)));
+  texes.forEach((tex, i) => { if (tex) buildPiece(sideGridPieces[i], tex, slots[i], i); });
+  let nextIndex = sideGridPieces.length;
+
+  if (featurePieces.length) {
+    const backSlots = backWallSlots(featurePieces.length, backFlankCount);
+
+    // Large-format pieces: bigger frame caps, uncropped rather than
+    // squeezed into the standard grid size (see the `large` flag).
+    const featTexes = await Promise.all(featurePieces.map(p => loadTexture(p.src)));
+    featTexes.forEach((tex, i) => {
+      if (tex) buildPiece(featurePieces[i], tex, backSlots.large[i], nextIndex + i, { baseH: 2.4, maxW: 4.0, maxH: 3.1 });
+    });
+    nextIndex += featurePieces.length;
+
+    const flankTexes = await Promise.all(backFlankPieces.map(p => loadTexture(p.src)));
+    flankTexes.forEach((tex, i) => {
+      if (tex) buildPiece(backFlankPieces[i], tex, backSlots.flank[i], nextIndex + i);
+    });
+    nextIndex += backFlankPieces.length;
+  }
 
   document.getElementById('captionEyebrow').textContent = room.eyebrow;
   document.getElementById('captionTitle').textContent = room.title;
@@ -416,8 +503,7 @@ async function showRoom(index, opts = {}) {
   nativeEl.textContent = room.nativeName && room.nativeName !== room.title ? room.nativeName : '';
   nativeEl.style.display = nativeEl.textContent ? '' : 'none';
   document.getElementById('captionBlurb').textContent = room.blurb;
-  document.getElementById('captionCount').textContent =
-    room.pieces.length + (room.pieces.length === 1 ? ' work on view' : ' works on view');
+  updateCaptionCount();
   document.getElementById('captionMore').href = 'country.html?c=' + room.slug;
   document.getElementById('roomPosition').textContent = (index + 1) + ' / ' + ROOMS.length;
 
@@ -616,12 +702,19 @@ document.getElementById('nextRoom').addEventListener('click', () => showRoom((cu
 
 const panel = document.getElementById('panel');
 let openIndex = -1;
+function updatePanelLabel() {
+  if (openIndex < 0) return;
+  const room = ROOMS[currentRoom];
+  const of = (uiStrings && uiStrings['panel.of']) || 'of';
+  document.getElementById('panelLabel').textContent =
+    room.title + ' · ' + (openIndex + 1) + ' ' + of + ' ' + placedPieces.length;
+}
 function openPanel(i) {
   const p = placedPieces[i];
   if (!p) return;
   openIndex = i;
   const room = ROOMS[currentRoom];
-  document.getElementById('panelLabel').textContent = room.title + ' · ' + (i + 1) + ' of ' + placedPieces.length;
+  updatePanelLabel();
   const im = document.getElementById('panelImg');
   im.src = p.data.src; im.alt = p.data.title;
   document.getElementById('panelTitle').textContent = p.data.title;
@@ -673,6 +766,15 @@ function hideHint() { hintEl.classList.add('faded'); clearTimeout(hintTimer); }
    Section 7 (full site translation) will build on this same loader.
    ============================================================ */
 const SUPPORTED_LANGS = ['en', 'fr', 'es', 'ar', 'ti', 'am', 'ht', 'so', 'my', 'prs', 'ne', 'sw', 'yo', 'uk', 'vi'];
+// Each language's own name, for the picker menus — hardcoded rather than
+// fetching all 15 data/i18n/*.json files (×2, one per switcher instance)
+// just to read one field out of each. The actual strings for whichever
+// language gets picked still load lazily via loadLang()/setLang() below.
+const LANG_NAMES = {
+  en: 'English', fr: 'Français', es: 'Español', ar: 'العربية', ti: 'ትግርኛ', am: 'አማርኛ',
+  ht: 'Kreyòl Ayisyen', so: 'Soomaali', my: 'မြန်မာ', prs: 'دری', ne: 'नेपाली',
+  sw: 'Kiswahili', yo: 'Yorùbá', uk: 'Українська', vi: 'Tiếng Việt',
+};
 const i18nCache = new Map();
 let uiStrings = null;
 
@@ -716,6 +818,20 @@ function applyUiStrings() {
     document.getElementById(label).textContent = s['lang.translate'];
     document.getElementById(btn).title = s['lang.switch'];
   });
+  document.getElementById('roomsBtnLabel').textContent = s['rooms.allRooms'];
+  document.getElementById('roomsSheetTitle').textContent = s['rooms.allRooms'];
+  document.getElementById('roomSearch').placeholder = s['rooms.searchPlaceholder'];
+  document.querySelector('#resetBtn .label').textContent = s['controls.resetView'];
+  document.getElementById('captionMore').textContent = s['room.readFullStory'];
+  document.getElementById('panelMore').textContent = s['room.readFullStory'];
+  document.getElementById('prevPiece').textContent = s['panel.previous'];
+  document.getElementById('nextPiece').textContent = s['panel.next'];
+  // Room caption ("X works on view") and the lightbox label ("Title · N of M")
+  // are rebuilt from live data whenever a room/piece changes (showRoom(),
+  // openPanel()) — re-run those now so a language switch mid-visit doesn't
+  // leave them showing the old language until the next navigation.
+  if (currentRoom >= 0) updateCaptionCount();
+  if (openIndex >= 0) updatePanelLabel();
 }
 async function setLang(lang, opts = {}) {
   if (!SUPPORTED_LANGS.includes(lang)) lang = 'en';
@@ -733,18 +849,15 @@ function closeLangMenu(menuEl, btnEl) {
 SWITCHERS.forEach(({ btn, menu }) => {
   const btnEl = document.getElementById(btn);
   const menuEl = document.getElementById(menu);
-  (async () => {
-    for (const lang of SUPPORTED_LANGS) {
-      const data = await loadLang(lang);
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.dataset.lang = lang;
-      b.setAttribute('role', 'menuitem');
-      b.textContent = data.langName;
-      b.addEventListener('click', () => { setLang(lang); closeLangMenu(menuEl, btnEl); });
-      menuEl.appendChild(b);
-    }
-  })();
+  SUPPORTED_LANGS.forEach(lang => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.lang = lang;
+    b.setAttribute('role', 'menuitem');
+    b.textContent = LANG_NAMES[lang] || lang;
+    b.addEventListener('click', () => { setLang(lang); closeLangMenu(menuEl, btnEl); });
+    menuEl.appendChild(b);
+  });
   btnEl.addEventListener('click', () => {
     const open = menuEl.classList.toggle('open');
     btnEl.setAttribute('aria-expanded', String(open));
@@ -769,9 +882,10 @@ const WALK_ACCEL = 26;     // m/s^2, how fast velocity ramps up toward target sp
 const WALK_FRICTION = 18;  // m/s^2, how fast velocity decays to zero with no input
 const LOOK_DAMPING = 0.0008; // lower = snappier, higher = smoother/laggier (drag-to-look catch-up)
 
-const clock = new THREE.Clock();
+const clock = new THREE.Timer(); // THREE.Clock is deprecated as of r184
 const walkVel = new THREE.Vector3();
 function tick() {
+  clock.update();
   const dt = Math.min(0.05, clock.getDelta());
 
   if (glide) {
