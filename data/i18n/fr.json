@@ -1,0 +1,21 @@
+{
+  "langName": "Français",
+  "entry.eyebrow": "Une initiative de Valore Group",
+  "entry.title": "La Galerie Valore",
+  "entry.desc": "Une salle pour chaque pays de la bibliothèque, ainsi que les artistes à l'honneur.",
+  "entry.howto.label": "Comment explorer",
+  "entry.howto.desktop": "Cliquez et faites glisser pour regarder autour de vous. Cliquez sur le sol pour vous y déplacer, ou utilisez les touches ZQSD / flèches (maintenez Maj pour courir). Cliquez sur une œuvre au mur pour en savoir plus.",
+  "entry.howto.mobile": "Faites glisser pour regarder autour de vous. Touchez le sol pour vous y déplacer. Touchez une œuvre au mur pour en savoir plus.",
+  "entry.roomsReady": "salles prêtes",
+  "entry.enter": "Entrer",
+  "entry.loading": "Préparation des salles",
+  "hint.desktop": "Glissez pour regarder · <b>Cliquez sur le sol</b> pour marcher · <b>Cliquez sur une œuvre</b> pour la lire",
+  "hint.mobile": "Glissez pour regarder · <b>Touchez le sol</b> pour marcher · <b>Touchez une œuvre</b> pour la lire",
+  "lang.switch": "Langue",
+  "lang.translate": "Traduire"
+,
+  "nav.explore": "Explorer",
+  "nav.voices": "Voix",
+  "nav.perspectives": "Perspectives",
+  "nav.about": "À propos"
+}

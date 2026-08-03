@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="img/favicon.png">
+<title>Perspectives · Valore Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="index.html" class="brand"><img src="img/logo-icon.png" alt="" class="brand-icon">Valore Library <small>A Valore Group Initiative</small></a>
+  <div class="nav-links">
+    <a href="gallery.html" data-i18n="nav.explore">Explore</a>
+    <a href="voices.html" data-i18n="nav.voices">Voices</a>
+    <a href="perspectives.html" class="active" data-i18n="nav.perspectives">Perspectives</a>
+    <a href="about.html" data-i18n="nav.about">About</a>
+  </div>
+</nav>
+
+<section id="storyRoot">
+  <div class="story-header">
+    <span class="tag">Loading…</span>
+  </div>
+</section>
+
+<footer>
+  <span>Valore Library: A Valore Group Initiative</span>
+  <span><a href="https://valore-arc.com">valore-arc.com</a></span>
+</footer>
+
+<script src="data/countries.js"></script>
+<script>
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+  (async function () {
+    const id = new URLSearchParams(location.search).get("id");
+    const root = document.getElementById("storyRoot");
+    if (!id) {
+      root.innerHTML = '<div class="coming-soon-panel"><h2>No submission specified.</h2><p><a href="perspectives.html">← Back to Perspectives</a></p></div>';
+      return;
+    }
+    try {
+      const res = await fetch(`/api/perspectives/${id}`);
+      if (!res.ok) throw new Error("not found");
+      const s = await res.json();
+      document.title = `${s.title || "Perspectives"} · Valore Library`;
+      const countryName = (window.VALORE_COUNTRIES || {})[s.country_slug]?.name || s.country_slug || "Perspectives";
+      const date = s.created_at ? new Date(s.created_at).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }) : "";
+      root.innerHTML = `
+        <div class="story-header">
+          <span class="tag">${escapeHtml(countryName)} &middot; Perspectives</span>
+          <h1>${escapeHtml(s.title || "Untitled")}</h1>
+          <div class="byline">By <strong>${escapeHtml(s.display_name || "Anonymous")}</strong></div>
+          <div class="meta">${date}</div>
+        </div>
+        <div class="story-body">
+          ${s.image_path ? `<div class="story-image glow-frame"><img src="${escapeHtml(s.image_path)}" alt=""></div>` : ""}
+          <p>${escapeHtml(s.english_text || "")}</p>
+        </div>
+        <div class="story-footer">
+          <a href="perspectives.html" style="font-weight:700; color:var(--accent-2);">← Back to Perspectives</a>
+        </div>
+      `;
+    } catch (error) {
+      root.innerHTML = '<div class="coming-soon-panel"><h2>This submission isn\'t available.</h2><p><a href="perspectives.html">← Back to Perspectives</a></p></div>';
+    }
+  })();
+</script>
+<script src="js/main.js"></script>
+<script src="js/site-lang.js" defer></script>
+</body>
+</html>

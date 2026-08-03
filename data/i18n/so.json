@@ -1,0 +1,21 @@
+{
+  "langName": "Soomaali",
+  "entry.eyebrow": "Hindise ka socota Valore Group",
+  "entry.title": "Madxafka Valore",
+  "entry.desc": "Qol u gaar ah waddan kasta oo maktabadda ku jira, iyo sidoo kale fanaaniinta la soo bandhigay.",
+  "entry.howto.label": "Sida loo sahamiyo",
+  "entry.howto.desktop": "Guji oo jiid si aad u fiirsato. Guji dhulka si aad ugu socoto, ama isticmaal WASD / fallaadhaha (hay Shift si aad u ordo). Guji shaqo kasta oo derbiga ku taal si aad wax uga barato.",
+  "entry.howto.mobile": "Jiid si aad u fiirsato. Taabo dhulka si aad ugu socoto. Taabo shaqo kasta oo derbiga ku taal si aad wax uga barato.",
+  "entry.roomsReady": "qolal diyaar ah",
+  "entry.enter": "Gal",
+  "entry.loading": "Qolalka ayaa la diyaarinayaa",
+  "hint.desktop": "Jiid si aad u fiirsato · <b>Guji dhulka</b> si aad u socoto · <b>Guji shaqo</b> si aad u akhrido",
+  "hint.mobile": "Jiid si aad u fiirsato · <b>Taabo dhulka</b> si aad u socoto · <b>Taabo shaqo</b> si aad u akhrido",
+  "lang.switch": "Luqad",
+  "lang.translate": "Tarjun"
+,
+  "nav.explore": "Sahamiye",
+  "nav.voices": "Codadka",
+  "nav.perspectives": "Aragtida",
+  "nav.about": "Nagu Saabsan"
+}

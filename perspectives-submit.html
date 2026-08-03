@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="img/favicon.png">
+<title>Submit Your Work · Valore Library Perspectives</title>
+<meta name="description" content="Submit creative work about culture and identity to Valore Library's Perspectives section.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="index.html" class="brand"><img src="img/logo-icon.png" alt="" class="brand-icon">Valore Library <small>A Valore Group Initiative</small></a>
+  <div class="nav-links">
+    <a href="gallery.html" data-i18n="nav.explore">Explore</a>
+    <a href="voices.html" data-i18n="nav.voices">Voices</a>
+    <a href="perspectives.html" class="active" data-i18n="nav.perspectives">Perspectives</a>
+    <a href="about.html" data-i18n="nav.about">About</a>
+  </div>
+</nav>
+
+<section>
+  <div class="section-max" style="max-width:760px;">
+    <div class="section-head">
+      <span class="eyebrow">Perspectives</span>
+      <h2>Submit your work</h2>
+      <p>Open to anyone: art, writing, or a class project about a culture featured here. Submissions are screened automatically and, for anything ambiguous, reviewed by a person before publishing.</p>
+    </div>
+
+    <form id="submitForm" data-submission-type="perspectives" class="submit-form">
+      <div class="form-field" style="position:absolute; left:-9999px;">
+        <label for="website">Leave this field empty</label>
+        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label for="display_name">Your name (or a pen name)</label>
+          <input type="text" id="display_name" name="display_name" placeholder="How you'd like to be credited" required>
+        </div>
+        <div class="form-field">
+          <label for="contact_email">Email (optional, private)</label>
+          <input type="email" id="contact_email" name="contact_email" placeholder="Only used if we need to reach you">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label for="country_slug">Which culture is this about?</label>
+          <select id="country_slug" name="country_slug" required>
+            <option value="">Select one…</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="language">Language you're writing in</label>
+          <input type="text" id="language" name="language" placeholder="e.g. English">
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="title">Title</label>
+        <input type="text" id="title" name="title" placeholder="Title of your piece" required>
+      </div>
+
+      <div class="form-field">
+        <label for="english_text">Your writing</label>
+        <textarea id="english_text" name="english_text" placeholder="Share your essay, poem, reflection, or artist's statement." required></textarea>
+      </div>
+
+      <div class="form-field">
+        <label for="image">Artwork or photo (optional)</label>
+        <input type="file" id="image" name="image" accept="image/png,image/jpeg,image/webp">
+        <span class="hint">JPG, PNG, or WebP, up to 5MB.</span>
+      </div>
+
+      <div class="form-consent">
+        <input type="checkbox" id="consent" name="consent" required>
+        <label for="consent" style="font-weight:400; text-transform:none; letter-spacing:normal;">
+          I confirm this is my own work and I'm okay with Valore Library publishing it, including my name/pen name, after review.
+        </label>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Submit</button>
+      <div id="formStatus" class="form-status"></div>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <span>Valore Library: A Valore Group Initiative</span>
+  <span><a href="https://valore-arc.com">valore-arc.com</a></span>
+</footer>
+
+<script src="data/countries.js"></script>
+<script src="js/submit-form.js"></script>
+<script src="js/main.js"></script>
+<script src="js/site-lang.js" defer></script>
+</body>
+</html>

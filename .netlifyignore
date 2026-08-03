@@ -1,0 +1,23 @@
+# Kept out of the published static bundle — these are local-dev-only or
+# contain secrets, and have no equivalent purpose once netlify/functions/
+# is doing the serving (see museum_server.py's replacement, api.mjs).
+.env
+.env.example
+museum_server.py
+requirements.txt
+pid.txt
+*.log
+__pycache__/
+n8n/
+# npm dependencies for netlify-cli itself (see package.json devDependencies)
+# — has no runtime purpose in the published bundle, but with no exclusion
+# here it was getting swept into every deploy's file hash (32,000+ files on
+# a site that has a few hundred real ones), the actual cause of how long
+# each `netlify deploy` was taking.
+node_modules/
+# Narration-generation tooling (see generate_museum_audio.py's own docstring)
+# — same category as museum_server.py above: a local dev/build-time script
+# and its raw text input, not a site asset. The .mp3 output in audio/ is the
+# actual deployed asset and is intentionally NOT excluded here.
+generate_museum_audio.py
+scripts/

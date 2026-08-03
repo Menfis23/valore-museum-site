@@ -1,0 +1,87 @@
+{
+  "name": "Valore Library — Submission Moderation",
+  "nodes": [
+    {
+      "id": "webhook-trigger",
+      "name": "New Submission Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-40, 0],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "valore-museum-submission",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "call-claude",
+      "name": "Screen with Claude",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{ $credentials.anthropicApi.apiKey }}" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: \"claude-opus-4-8\", max_tokens: 300, system: \"You are the content moderation screener for Valore Library, a public cultural storytelling platform run by Valore Group. Screen the submission for hate speech, explicit or sexual content, spam/advertising, and content unrelated to culture, identity, or personal experience. Respond with ONLY a JSON object of the shape {\\\"tier\\\": \\\"auto_publish\\\" | \\\"auto_reject\\\" | \\\"needs_review\\\", \\\"reason\\\": \\\"<one short sentence>\\\"}. Use auto_reject only for clear unambiguous violations, auto_publish only for submissions that are clearly fine, and needs_review for anything ambiguous or borderline — when in doubt, choose needs_review.\", messages: [ { role: \"user\", content: \"TITLE: \" + ($json.body.title || \"\") + \"\\n\\nTEXT (original language): \" + ($json.body.original_text || \"\") + \"\\n\\nTEXT (English): \" + ($json.body.english_text || \"\") } ] }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "parse-result",
+      "name": "Parse Screening Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 0],
+      "parameters": {
+        "jsCode": "const webhookData = $('New Submission Webhook').item.json.body;\nconst claudeResponse = $input.item.json;\nconst textBlock = (claudeResponse.content || []).find(b => b.type === 'text');\nconst raw = textBlock ? textBlock.text : '{}';\nconst match = raw.match(/\\{[\\s\\S]*\\}/);\nlet result = { tier: 'needs_review', reason: 'Could not parse screener response.' };\nif (match) {\n  try {\n    const parsed = JSON.parse(match[0]);\n    if (['auto_publish', 'auto_reject', 'needs_review'].includes(parsed.tier)) {\n      result = parsed;\n    }\n  } catch (e) {\n    // keep default needs_review\n  }\n}\nreturn [{ json: { submission_id: webhookData.submission_id, tier: result.tier, reason: result.reason } }];"
+      }
+    },
+    {
+      "id": "callback-museum-server",
+      "name": "Send Result to Valore Library",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ \"http://YOUR-MUSEUM-SERVER-HOST:8899/api/admin/submissions/\" + $json.submission_id + \"/screen-result\" }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-Museum-Secret", "value": "PASTE_N8N_CALLBACK_SECRET_FROM_ENV_HERE" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ tier: $json.tier, reason: $json.reason }) }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "New Submission Webhook": {
+      "main": [[{ "node": "Screen with Claude", "type": "main", "index": 0 }]]
+    },
+    "Screen with Claude": {
+      "main": [[{ "node": "Parse Screening Result", "type": "main", "index": 0 }]]
+    },
+    "Parse Screening Result": {
+      "main": [[{ "node": "Send Result to Valore Library", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}

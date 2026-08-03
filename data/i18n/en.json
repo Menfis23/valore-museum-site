@@ -1,0 +1,20 @@
+{
+  "langName": "English",
+  "entry.eyebrow": "A Valore Group Initiative",
+  "entry.title": "The Valore Gallery",
+  "entry.desc": "A room for every country in the library, plus the artist spotlights.",
+  "entry.howto.label": "How to explore",
+  "entry.howto.desktop": "Click and drag to look around. Click the floor to walk there, or use WASD / arrow keys (hold Shift to sprint). Click any piece on the wall to read about it.",
+  "entry.howto.mobile": "Drag to look around. Tap the floor to walk there. Tap any piece on the wall to read about it.",
+  "entry.roomsReady": "rooms ready",
+  "entry.enter": "Enter",
+  "entry.loading": "Preparing the rooms",
+  "hint.desktop": "Drag to look · <b>Click the floor</b> to walk · <b>Click a piece</b> to read it",
+  "hint.mobile": "Drag to look · <b>Tap the floor</b> to walk · <b>Tap a piece</b> to read it",
+  "lang.switch": "Language",
+  "lang.translate": "Translate",
+  "nav.explore": "Explore",
+  "nav.voices": "Voices",
+  "nav.perspectives": "Perspectives",
+  "nav.about": "About"
+}

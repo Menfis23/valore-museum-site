@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="img/favicon.png">
+<title>Perspectives · Valore Library</title>
+<meta name="description" content="Student and public creative work about culture and identity.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="index.html" class="brand"><img src="img/logo-icon.png" alt="" class="brand-icon">Valore Library <small>A Valore Group Initiative</small></a>
+  <div class="nav-links">
+    <a href="gallery.html" data-i18n="nav.explore">Explore</a>
+    <a href="voices.html" data-i18n="nav.voices">Voices</a>
+    <a href="perspectives.html" class="active" data-i18n="nav.perspectives">Perspectives</a>
+    <a href="about.html" data-i18n="nav.about">About</a>
+    <a href="perspectives-submit.html" class="btn btn-primary btn-sm">Submit work</a>
+  </div>
+</nav>
+
+<section>
+  <div class="section-max">
+    <div class="section-head-row reveal">
+      <div class="section-head" style="margin-bottom:0;">
+        <span class="eyebrow">Perspectives</span>
+        <h2>Student & public creative work</h2>
+        <p>Open to anyone, especially students, exploring culture and identity through art, writing, or class projects. Separate from Voices, which is reserved for refugees and immigrants sharing their own lived experience.</p>
+      </div>
+    </div>
+
+    <div id="feedGrid" class="feed-grid"></div>
+    <div id="feedEmpty" class="feed-empty" style="display:none;">
+      Nothing published yet. <a href="perspectives-submit.html" style="color:var(--accent-2); font-weight:700;">Be the first to submit →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>Valore Library: A Valore Group Initiative</span>
+  <span><a href="https://valore-arc.com">valore-arc.com</a></span>
+</footer>
+
+<script>
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+  (async function () {
+    const grid = document.getElementById("feedGrid");
+    const empty = document.getElementById("feedEmpty");
+    try {
+      const res = await fetch("/api/perspectives");
+      const data = await res.json();
+      const items = data.items || [];
+      if (!items.length) {
+        empty.style.display = "block";
+        return;
+      }
+      items.forEach((item) => {
+        const card = document.createElement("a");
+        card.className = "feed-card";
+        card.href = `perspectives-story.html?id=${encodeURIComponent(item.id)}`;
+        const date = item.created_at ? new Date(item.created_at).toLocaleDateString(undefined, { year: "numeric", month: "long" }) : "";
+        card.innerHTML = `
+          <span class="tag">${escapeHtml(item.country_slug || "Perspectives")}</span>
+          <h3>${escapeHtml(item.title || "Untitled")}</h3>
+          <p>${escapeHtml(item.excerpt || "")}</p>
+          <span class="meta">${escapeHtml(item.display_name || "Anonymous")} &middot; ${date}</span>
+        `;
+        grid.appendChild(card);
+      });
+    } catch (error) {
+      empty.textContent = "Couldn't load submissions right now. Please try again shortly.";
+      empty.style.display = "block";
+    }
+  })();
+</script>
+<script src="js/main.js"></script>
+<script src="js/site-lang.js" defer></script>
+</body>
+</html>

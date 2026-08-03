@@ -1,0 +1,21 @@
+{
+  "langName": "Kreyòl Ayisyen",
+  "entry.eyebrow": "Yon inisyativ Valore Group",
+  "entry.title": "Galri Valore a",
+  "entry.desc": "Yon sal pou chak peyi nan bibliyotèk la, plis atis yo mete aksan sou yo.",
+  "entry.howto.label": "Kijan pou eksplore",
+  "entry.howto.desktop": "Klike epi trennen pou gade toutotou. Klike sou planche a pou mache ale la, oswa itilize WASD / touch flèch yo (kenbe Shift pou kouri). Klike sou nenpòt pyès sou mi a pou li plis sou li.",
+  "entry.howto.mobile": "Trennen pou gade toutotou. Tape sou planche a pou mache ale la. Tape sou nenpòt pyès sou mi a pou li plis sou li.",
+  "entry.roomsReady": "sal pare",
+  "entry.enter": "Antre",
+  "entry.loading": "N ap prepare sal yo",
+  "hint.desktop": "Trennen pou gade · <b>Klike sou planche a</b> pou mache · <b>Klike sou yon pyès</b> pou li li",
+  "hint.mobile": "Trennen pou gade · <b>Tape sou planche a</b> pou mache · <b>Tape sou yon pyès</b> pou li li",
+  "lang.switch": "Lang",
+  "lang.translate": "Tradui"
+,
+  "nav.explore": "Eksplore",
+  "nav.voices": "Vwa",
+  "nav.perspectives": "Pèspektiv",
+  "nav.about": "Sou nou"
+}

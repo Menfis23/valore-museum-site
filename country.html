@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="img/favicon.png">
+<title>Valore Library</title>
+<meta name="description" content="Valore Library: explore the culture, art, and history of countries around the world.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+</head>
+<body>
+<script>
+  // Runs synchronously, before first paint: if we arrived via the "traveling
+  // through space" transition (map marker / orbit gallery on Explore), cover
+  // the screen with the same dark overlay color *immediately* so there's no
+  // flash of the bare page in between — js/travel-transition.js fades this
+  // back out once GSAP is confirmed loaded (see the bottom of this page).
+  try {
+    if (sessionStorage.getItem("valoreTravelTransition") === "1") {
+      document.body.insertAdjacentHTML("afterbegin", '<div id="valoreEntryOverlay" style="position:fixed;inset:0;z-index:999;background:#1D130F;"></div>');
+    }
+  } catch (err) {}
+</script>
+
+<nav class="site-nav">
+  <a href="index.html" class="brand"><img src="img/logo-icon.png" alt="" class="brand-icon">Valore Library <small>A Valore Group Initiative</small></a>
+  <div class="nav-links">
+    <a href="gallery.html" data-i18n="nav.explore">Explore</a>
+    <a href="voices.html" data-i18n="nav.voices">Voices</a>
+    <a href="perspectives.html" data-i18n="nav.perspectives">Perspectives</a>
+    <a href="about.html" data-i18n="nav.about">About</a>
+  </div>
+</nav>
+
+<div id="countryRoot">
+  <div class="country-hero" id="countryHero">
+    <div class="country-hero-inner">
+      <span class="tag" id="countryTag">Loading…</span>
+      <h1 id="countryName"></h1>
+      <div class="native-name" id="countryNative"></div>
+      <div class="lang-toggle" id="langToggle">
+        <button data-lang="en" class="active">English</button>
+        <button data-lang="native" id="nativeLangBtn">Native</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="country-layout">
+    <div class="country-content">
+      <button class="audio-toggle" disabled title="Ambient regional audio, coming soon">
+        &#9835; Ambient sound, coming soon
+      </button>
+      <div id="countryChapters"></div>
+      <p id="countryTranslationNote" style="font-size:13px; opacity:.6; margin-top:8px;">
+        Native-language text is a first-pass AI-assisted translation and may not be perfect.
+        Corrections from native speakers are welcome through <a href="voices.html">Voices</a> submissions.
+      </p>
+      <p id="countryVoicesCta" style="margin-top:24px;">
+        Have a personal story or connection to this culture? <a href="voices.html" style="font-weight:700; color:var(--accent-2);">Share it in Voices →</a>
+      </p>
+    </div>
+    <div class="country-float-gallery" id="countryGallery"></div>
+  </div>
+
+  <div class="section-max" style="padding-top:0;">
+    <div class="country-crosslink" id="countryCrosslink"></div>
+  </div>
+</div>
+
+<footer>
+  <span>Valore Library: A Valore Group Initiative</span>
+  <span><a href="https://valore-arc.com">valore-arc.com</a></span>
+</footer>
+
+<script src="data/countries.js"></script>
+<script src="data/artists.js"></script>
+<script src="js/travel-transition.js"></script>
+<script src="js/country-gallery.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    window.ValoreTravelTransition?.revealOnEntry();
+
+    const params = new URLSearchParams(location.search);
+    const slug = params.get("c");
+    // Artist spotlight entries (data/artists.js) are shaped exactly like a
+    // country entry, so they render through this same page — checked second
+    // since slugs are namespaced separately and shouldn't collide.
+    const isArtist = !(window.VALORE_COUNTRIES || {})[slug] && !!(window.VALORE_ARTISTS || {})[slug];
+    const c = (window.VALORE_COUNTRIES || {})[slug] || (window.VALORE_ARTISTS || {})[slug];
+    const root = document.getElementById("countryRoot");
+
+    if (!c) {
+      root.innerHTML = '<div class="coming-soon-panel" style="margin:120px auto;"><span class="tag">Not found</span><h2>This country page doesn\'t exist yet.</h2><p><a href="gallery.html">← Back to Explore</a></p></div>';
+      return;
+    }
+
+    if (c.accentClass) document.body.classList.add(c.accentClass);
+    document.title = `${c.name} · Valore Library`;
+    document.getElementById("countryHero").style.backgroundImage = c.heroImage
+      ? `url('${c.heroImage}')`
+      : "radial-gradient(1200px 600px at 80% -10%, rgba(201,105,30,.28), transparent 60%), radial-gradient(900px 500px at 0% 110%, rgba(51,83,47,.35), transparent 60%)";
+    document.getElementById("countryTag").textContent = c.tag;
+    document.getElementById("countryName").textContent = c.name;
+    document.getElementById("countryNative").textContent = c.nativeName;
+    document.getElementById("nativeLangBtn").textContent = c.langLabel || "Native";
+    // Artist entries have no native-language translation to toggle to (see
+    // data/artists.js's comment on `noTranslation`) — hide the toggle rather
+    // than show one that just re-renders the same English text.
+    if (c.noTranslation) document.getElementById("langToggle").style.display = "none";
+    if (isArtist) {
+      document.getElementById("countryTranslationNote").style.display = "none";
+      document.getElementById("countryVoicesCta").innerHTML =
+        `Have a personal story or connection to ${c.name}'s work? <a href="voices.html" style="font-weight:700; color:var(--accent-2);">Share it in Voices →</a>`;
+    }
+
+    // Left column — chapters as plain readable text (no more full-bleed photo
+    // backdrops; the photography now lives in the floating right column).
+    const chaptersEl = document.getElementById("countryChapters");
+    const chapterNumerals = ["One", "Two", "Three", "Four", "Five", "Six"];
+    c.sections.forEach((s, i) => {
+      const chapter = document.createElement("div");
+      chapter.className = "country-chapter-text reveal";
+      chapter.innerHTML = `
+        <span class="chapter-number"><b>${String(i + 1).padStart(2, "0")}</b> &middot; Chapter ${chapterNumerals[i] || i + 1}</span>
+        <h2><span class="eng-text">${s.heading.en}</span><span class="native-text">${s.heading.native}</span></h2>
+        <p><span class="eng-text">${s.body.en}</span><span class="native-text">${s.body.native}</span></p>
+      `;
+      chaptersEl.appendChild(chapter);
+    });
+
+    // Right column — an orbiting photo carousel (same coverflow technique as
+    // the Explore flag gallery) instead of a static floating stack.
+    const galleryEl = document.getElementById("countryGallery");
+    window.ValoreCountryGallery?.init({ container: galleryEl, photos: c.photos || [], countryName: c.name });
+
+    document.querySelectorAll("#langToggle button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#langToggle button").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        const showNative = btn.dataset.lang === "native";
+        document.querySelectorAll(".eng-text").forEach((el) => el.classList.toggle("hidden", showNative));
+        document.querySelectorAll(".native-text").forEach((el) => el.classList.toggle("active", showNative));
+      });
+    });
+
+    if (isArtist) {
+      // Artist rooms aren't part of the country prev/next cycle below (a
+      // separate roster on purpose — see js/museum-ui.js) — just a way back
+      // to the gallery corridor instead.
+      document.getElementById("countryCrosslink").innerHTML = `
+        <a href="gallery.html">← Back to the gallery</a>
+      `;
+    } else {
+      const slugs = Object.keys(window.VALORE_COUNTRIES || {});
+      const idx = slugs.indexOf(slug);
+      if (idx !== -1 && slugs.length > 1) {
+        const prevSlug = slugs[(idx - 1 + slugs.length) % slugs.length];
+        const nextSlug = slugs[(idx + 1) % slugs.length];
+        const prevC = window.VALORE_COUNTRIES[prevSlug];
+        const nextC = window.VALORE_COUNTRIES[nextSlug];
+        document.getElementById("countryCrosslink").innerHTML = `
+          <a href="country.html?c=${prevSlug}">← ${prevC.name}</a>
+          <a href="gallery.html">All countries</a>
+          <a href="country.html?c=${nextSlug}">${nextC.name} →</a>
+        `;
+      }
+    }
+  });
+</script>
+<script src="js/main.js"></script>
+<script src="js/site-lang.js" defer></script>
+</body>
+</html>

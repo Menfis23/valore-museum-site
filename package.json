@@ -1,0 +1,12 @@
+{
+  "name": "valore-library",
+  "private": true,
+  "description": "Backend functions for the Valore Library site (see netlify/functions/).",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0",
+    "@netlify/database": "^1.0.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^26.2.0"
+  }
+}

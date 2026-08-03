@@ -1,0 +1,21 @@
+{
+  "langName": "Tiếng Việt",
+  "entry.eyebrow": "Một sáng kiến của Valore Group",
+  "entry.title": "Phòng Trưng Bày Valore",
+  "entry.desc": "Một căn phòng cho mỗi quốc gia trong thư viện, cùng với các nghệ sĩ được giới thiệu nổi bật.",
+  "entry.howto.label": "Cách khám phá",
+  "entry.howto.desktop": "Nhấp và kéo để nhìn xung quanh. Nhấp vào sàn nhà để đi đến đó, hoặc dùng phím WASD / phím mũi tên (giữ Shift để chạy). Nhấp vào bất kỳ tác phẩm nào trên tường để đọc về nó.",
+  "entry.howto.mobile": "Kéo để nhìn xung quanh. Chạm vào sàn nhà để đi đến đó. Chạm vào bất kỳ tác phẩm nào trên tường để đọc về nó.",
+  "entry.roomsReady": "phòng đã sẵn sàng",
+  "entry.enter": "Vào",
+  "entry.loading": "Đang chuẩn bị các phòng",
+  "hint.desktop": "Kéo để nhìn · <b>Nhấp vào sàn</b> để đi · <b>Nhấp vào tác phẩm</b> để đọc",
+  "hint.mobile": "Kéo để nhìn · <b>Chạm vào sàn</b> để đi · <b>Chạm vào tác phẩm</b> để đọc",
+  "lang.switch": "Ngôn ngữ",
+  "lang.translate": "Dịch"
+,
+  "nav.explore": "Khám phá",
+  "nav.voices": "Tiếng nói",
+  "nav.perspectives": "Góc nhìn",
+  "nav.about": "Giới thiệu"
+}

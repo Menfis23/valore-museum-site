@@ -1,0 +1,21 @@
+{
+  "langName": "ትግርኛ",
+  "entry.eyebrow": "ውራይ ቫሎረ ግሩፕ",
+  "entry.title": "ቤተ-ስእሊ ቫሎረ",
+  "entry.desc": "ንነፍስ ወከፍ ሃገር ኣብ ቤተ-መጻሕፍቲ ሓደ ክፍሊ፡ ብተወሳኺ ንፍሉያት ስነ-ጥበባውያን ዝወሃብ ኣቓልቦ።",
+  "entry.howto.label": "ከመይ ጌርካ ትዘውር",
+  "entry.howto.desktop": "ንኽትዕዘብ ጠውቕን ጎትትን። ንኽትከይድ ኣብ ባይታ ጠውቕ፡ ወይ WASD / ናይ ኣንፈት መልጎም ተጠቐም (ንምጉያይ Shift ሓዝ)። ንዝያዳ ሓበሬታ ኣብ ዝኾነ ስራሕ ኣብ መንደቕ ጠውቕ።",
+  "entry.howto.mobile": "ንኽትዕዘብ ጎትት። ንኽትከይድ ኣብ ባይታ ጠዊቕካ ተጫወት። ንዝያዳ ሓበሬታ ኣብ ዝኾነ ስራሕ ጠዊቕካ ኣንብብ።",
+  "entry.roomsReady": "ክፍልታት ድሉዋት",
+  "entry.enter": "እቶ",
+  "entry.loading": "ክፍልታት ይዳሎ ኣሎ",
+  "hint.desktop": "ንምዕዛብ ጎትት · <b>ባይታ ጠውቕ</b> ንምኻድ · <b>ስራሕ ጠውቕ</b> ንምንባብ",
+  "hint.mobile": "ንምዕዛብ ጎትት · <b>ባይታ ጠዊቕካ</b> ኺድ · <b>ስራሕ ጠዊቕካ</b> ኣንብብ",
+  "lang.switch": "ቋንቋ",
+  "lang.translate": "ተርጉም"
+,
+  "nav.explore": "ዳህስስ",
+  "nav.voices": "ድምጽታት",
+  "nav.perspectives": "ትዕዝብትታት",
+  "nav.about": "ብዛዕባና"
+}

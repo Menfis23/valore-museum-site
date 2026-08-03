@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="img/favicon.png">
+<title>Valore Library: A Valore Group Initiative</title>
+<meta name="description" content="A cultural library and storytelling platform for the countries refugees and immigrants call home: beauty and history, not stereotypes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="index.html" class="brand"><img src="img/logo-icon.png" alt="" class="brand-icon">Valore Library <small>A Valore Group Initiative</small></a>
+  <div class="nav-links">
+    <a href="gallery.html" data-i18n="nav.explore">Explore</a>
+    <a href="voices.html" data-i18n="nav.voices">Voices</a>
+    <a href="perspectives.html" data-i18n="nav.perspectives">Perspectives</a>
+    <a href="about.html" data-i18n="nav.about">About</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="eyebrow">A Valore Group Initiative</span>
+    <h1>Every country has more to it than the headlines show.</h1>
+    <p class="lede">Valore Library is a cultural library built from the places refugees, immigrants, and their families call home: the art, the food, the music, the history that runs deeper than a classroom unit ever covers. Not poverty. Not conflict. The whole picture.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="gallery.html">Start Exploring</a>
+      <a class="btn btn-outline" href="about.html">Our Mission</a>
+    </div>
+  </div>
+</div>
+
+<section>
+  <div class="section-max">
+    <div class="section-head reveal">
+      <span class="eyebrow">Discover</span>
+      <h2>A living collection, not a brochure</h2>
+      <p>Real photography from every country featured here. Hover a piece to pause, click through to its full story.</p>
+    </div>
+    <div class="discover-marquee reveal">
+      <div class="discover-track" id="discoverTrack"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="section-max">
+    <div class="section-head reveal">
+      <span class="eyebrow">What's here</span>
+      <h2>Three ways in</h2>
+    </div>
+    <div class="region-grid">
+      <a class="region-card glow-frame-hover reveal" href="gallery.html">
+        <span class="tag">Explore</span>
+        <h3>Step into a country</h3>
+        <p>An interactive map. Click in and read about a region's everyday life, art, and history in both English and its own language.</p>
+      </a>
+      <a class="region-card glow-frame-hover reveal" href="voices.html">
+        <span class="tag">Voices</span>
+        <h3>Real stories, first-hand</h3>
+        <p>Personal accounts from refugees and immigrants, in their own words. Submit yours or read others'.</p>
+      </a>
+      <a class="region-card glow-frame-hover reveal" href="perspectives.html">
+        <span class="tag">Perspectives</span>
+        <h3>Student & public creative work</h3>
+        <p>Art, writing, and class projects from anyone exploring these cultures, open now.</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="quote-block reveal">
+    <blockquote>"Every human being arrives with value. I don't see refugees. I see doctors, artists, engineers and leaders waiting for the world to catch up."</blockquote>
+    <cite>&middot; Rechab, Founder, Valore Group</cite>
+  </div>
+</section>
+
+<footer>
+  <span>Valore Library: A Valore Group Initiative</span>
+  <span><a href="https://valore-arc.com">valore-arc.com</a></span>
+</footer>
+
+<script src="data/countries.js"></script>
+<script src="js/main.js"></script>
+<script src="js/site-lang.js" defer></script>
+</body>
+</html>

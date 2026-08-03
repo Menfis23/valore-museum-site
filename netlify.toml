@@ -1,0 +1,83 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Embedder-Policy = "require-corp"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), camera=(), microphone=()"
+    # 'unsafe-inline' on script/style is required by the site's existing inline
+    # <script>/style="" blocks (a wholesale rewrite to nonces/external files is
+    # out of scope here) — the real XSS fix is the escapeHtml() work on every
+    # user-submitted field. This CSP still blocks loading script/frame/object
+    # content from any host other than the ones the site actually uses.
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+
+# publish = "." serves the whole repo root as static files, and the CLI does
+# not honor .netlifyignore for these — so backend source, DB schema, and dev
+# scripts were reachable directly by URL. force = true overrides the default
+# "serve the file if it exists" behavior for these specific paths.
+[[redirects]]
+  from = "/netlify/*"
+  to = "/index.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/museum_server.py"
+  to = "/index.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/generate_museum_audio.py"
+  to = "/index.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/requirements.txt"
+  to = "/index.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/package.json"
+  to = "/index.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/package-lock.json"
+  to = "/index.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/pid.txt"
+  to = "/index.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/*.log"
+  to = "/index.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/__pycache__/*"
+  to = "/index.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/Gallery room improvements.zip"
+  to = "/index.html"
+  status = 404
+  force = true

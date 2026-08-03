@@ -1,0 +1,7 @@
+node_modules/
+.env
+.netlify/
+*.log
+pid.txt
+__pycache__/
+Gallery room improvements.zip

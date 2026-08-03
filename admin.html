@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="img/favicon.png">
+<title>Admin · Valore Library</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="index.html" class="brand"><img src="img/logo-icon.png" alt="" class="brand-icon">Valore Library <small>Admin</small></a>
+  <div class="nav-links">
+    <a href="index.html">← Back to site</a>
+  </div>
+</nav>
+
+<section>
+  <div class="admin-shell">
+    <div id="loginPanel" class="admin-login">
+      <h2 style="margin-bottom:20px;">Admin login</h2>
+      <div class="form-field">
+        <input type="text" id="loginUser" placeholder="Username" autocomplete="username">
+      </div>
+      <div class="form-field">
+        <input type="password" id="loginPass" placeholder="Password" autocomplete="current-password">
+      </div>
+      <button id="loginBtn" class="btn btn-primary" style="width:100%;">Log in</button>
+      <div id="loginError" class="form-status err" style="margin-top:16px;"></div>
+    </div>
+
+    <div id="queuePanel" style="display:none;">
+      <div class="section-head-row" style="margin-bottom:24px;">
+        <h2>Moderation queue</h2>
+        <button id="logoutBtn" class="btn btn-outline btn-sm">Log out</button>
+      </div>
+      <div class="queue-tabs">
+        <button class="queue-tab active" data-status="pending">Pending</button>
+        <button class="queue-tab" data-status="needs_review">Needs review</button>
+        <button class="queue-tab" data-status="approved">Approved</button>
+        <button class="queue-tab" data-status="rejected">Rejected</button>
+        <button class="queue-tab" data-status="">All</button>
+      </div>
+      <div id="queueList"></div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function () {
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+  const loginPanel = document.getElementById("loginPanel");
+  const queuePanel = document.getElementById("queuePanel");
+  const loginBtn = document.getElementById("loginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const loginError = document.getElementById("loginError");
+  const queueList = document.getElementById("queueList");
+  const tabs = document.querySelectorAll(".queue-tab");
+
+  function authHeader() {
+    const creds = sessionStorage.getItem("valoreAdminAuth");
+    return creds ? { Authorization: `Basic ${creds}` } : {};
+  }
+
+  async function tryAuth() {
+    const res = await fetch("/api/admin/queue?status=pending", { headers: authHeader() });
+    if (res.status === 401) return false;
+    loginPanel.style.display = "none";
+    queuePanel.style.display = "block";
+    loadQueue("pending");
+    return true;
+  }
+
+  loginBtn.addEventListener("click", async () => {
+    const user = document.getElementById("loginUser").value.trim();
+    const pass = document.getElementById("loginPass").value;
+    const creds = btoa(`${user}:${pass}`);
+    sessionStorage.setItem("valoreAdminAuth", creds);
+    loginError.classList.remove("visible");
+    const ok = await tryAuth();
+    if (!ok) {
+      sessionStorage.removeItem("valoreAdminAuth");
+      loginError.textContent = "Wrong username or password.";
+      loginError.classList.add("visible");
+    }
+  });
+
+  logoutBtn.addEventListener("click", () => {
+    sessionStorage.removeItem("valoreAdminAuth");
+    queuePanel.style.display = "none";
+    loginPanel.style.display = "block";
+  });
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      tabs.forEach((t) => t.classList.remove("active"));
+      tab.classList.add("active");
+      loadQueue(tab.dataset.status);
+    });
+  });
+
+  async function loadQueue(status) {
+    queueList.innerHTML = '<p style="opacity:.6;">Loading…</p>';
+    const url = status ? `/api/admin/queue?status=${status}` : "/api/admin/queue";
+    const res = await fetch(url, { headers: authHeader() });
+    if (res.status === 401) {
+      queuePanel.style.display = "none";
+      loginPanel.style.display = "block";
+      return;
+    }
+    const data = await res.json();
+    const items = data.items || [];
+    if (!items.length) {
+      queueList.innerHTML = '<p style="opacity:.6;">Nothing here.</p>';
+      return;
+    }
+    queueList.innerHTML = "";
+    items.forEach((item) => {
+      const el = document.createElement("div");
+      el.className = "queue-item";
+      const body = item.english_text || item.original_text || "";
+      const ai = item.ai_screening ? `AI screening, tier: ${item.ai_screening.tier}\nreason: ${item.ai_screening.reason}` : "Not screened yet.";
+      const actionsHtml = (item.status === "pending" || item.status === "needs_review")
+        ? `<div class="queue-item-actions">
+             <button class="btn btn-sm btn-approve" data-id="${escapeHtml(item.id)}" data-action="approve">Approve</button>
+             <button class="btn btn-sm btn-reject" data-id="${escapeHtml(item.id)}" data-action="reject">Reject</button>
+           </div>`
+        : "";
+      el.innerHTML = `
+        <div class="queue-item-head">
+          <h3>${escapeHtml(item.title || "Untitled")} <span style="opacity:.5; font-weight:400;">(${escapeHtml(item.type)})</span></h3>
+          <span class="queue-badge ${escapeHtml(item.status)}">${escapeHtml(item.status.replace("_", " "))}</span>
+        </div>
+        <div style="font-size:12px; opacity:.6; margin-bottom:10px;">
+          ${escapeHtml(item.display_name || "Anonymous")} · ${escapeHtml(item.country_slug || "Unknown")} · ${item.created_at ? new Date(item.created_at).toLocaleString() : ""}
+        </div>
+        <div class="queue-item-body">${escapeHtml(body)}</div>
+        <div class="queue-item-ai">${escapeHtml(ai)}</div>
+        ${actionsHtml}
+      `;
+      queueList.appendChild(el);
+    });
+
+    queueList.querySelectorAll("[data-action]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        btn.disabled = true;
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+        await fetch(`/api/admin/submissions/${id}/${action}`, { method: "POST", headers: authHeader() });
+        const activeTab = document.querySelector(".queue-tab.active");
+        loadQueue(activeTab ? activeTab.dataset.status : "pending");
+      });
+    });
+  }
+
+  if (sessionStorage.getItem("valoreAdminAuth")) tryAuth();
+})();
+</script>
+</body>
+</html>

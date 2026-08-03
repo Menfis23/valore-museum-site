@@ -1,0 +1,21 @@
+{
+  "langName": "Yorùbá",
+  "entry.eyebrow": "Ìpilẹ̀ṣẹ̀ kan láti ọ̀dọ̀ Valore Group",
+  "entry.title": "Gbọ̀ngàn Iṣẹ́ Ọnà Valore",
+  "entry.desc": "Yàrá kan fún orílẹ̀-èdè kọ̀ọ̀kan nínú ilé-ìkàwé náà, pẹ̀lú àwọn ayàwòrán tí a ṣe àfihàn pàtàkì.",
+  "entry.howto.label": "Bí a ṣe lè wádìí",
+  "entry.howto.desktop": "Tẹ kí o sì fà láti wo yíká. Tẹ ilẹ̀ láti rìn lọ síbẹ̀, tàbí lo WASD / àwọn bọ́tìnnì ọfà (dá Shift dúró láti sáré). Tẹ iṣẹ́ ọnà èyíkéyìí lórí ògiri láti kà nípa rẹ̀.",
+  "entry.howto.mobile": "Fà láti wo yíká. Fọwọ́ba ilẹ̀ láti rìn lọ síbẹ̀. Fọwọ́ba iṣẹ́ ọnà èyíkéyìí lórí ògiri láti kà nípa rẹ̀.",
+  "entry.roomsReady": "àwọn yàrá ti ṣetán",
+  "entry.enter": "Wọlé",
+  "entry.loading": "Ń ṣe àmúrasílẹ̀ àwọn yàrá",
+  "hint.desktop": "Fà láti wò · <b>Tẹ ilẹ̀</b> láti rìn · <b>Tẹ iṣẹ́ kan</b> láti kà á",
+  "hint.mobile": "Fà láti wò · <b>Fọwọ́ba ilẹ̀</b> láti rìn · <b>Fọwọ́ba iṣẹ́ kan</b> láti kà á",
+  "lang.switch": "Èdè",
+  "lang.translate": "Tumọ̀"
+,
+  "nav.explore": "Ṣàwárí",
+  "nav.voices": "Ohùn",
+  "nav.perspectives": "Ojú-ìwòye",
+  "nav.about": "Nípa Wa"
+}

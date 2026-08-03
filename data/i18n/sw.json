@@ -1,0 +1,21 @@
+{
+  "langName": "Kiswahili",
+  "entry.eyebrow": "Mpango wa Valore Group",
+  "entry.title": "Ghala ya Sanaa ya Valore",
+  "entry.desc": "Chumba kwa kila nchi katika maktaba, pamoja na wasanii maalum walioangaziwa.",
+  "entry.howto.label": "Jinsi ya kuchunguza",
+  "entry.howto.desktop": "Bofya na uburute ili kutazama pande zote. Bofya sakafuni ili kutembea huko, au tumia WASD / vitufe vya mishale (shikilia Shift ili kukimbia). Bofya kazi yoyote ukutani ili kusoma kuihusu.",
+  "entry.howto.mobile": "Buruta ili kutazama pande zote. Gusa sakafuni ili kutembea huko. Gusa kazi yoyote ukutani ili kusoma kuihusu.",
+  "entry.roomsReady": "vyumba viko tayari",
+  "entry.enter": "Ingia",
+  "entry.loading": "Inaandaa vyumba",
+  "hint.desktop": "Buruta kutazama · <b>Bofya sakafu</b> kutembea · <b>Bofya kazi</b> kuisoma",
+  "hint.mobile": "Buruta kutazama · <b>Gusa sakafu</b> kutembea · <b>Gusa kazi</b> kuisoma",
+  "lang.switch": "Lugha",
+  "lang.translate": "Tafsiri"
+,
+  "nav.explore": "Chunguza",
+  "nav.voices": "Sauti",
+  "nav.perspectives": "Mitazamo",
+  "nav.about": "Kuhusu"
+}

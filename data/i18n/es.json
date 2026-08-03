@@ -1,0 +1,21 @@
+{
+  "langName": "Español",
+  "entry.eyebrow": "Una iniciativa de Valore Group",
+  "entry.title": "La Galería Valore",
+  "entry.desc": "Una sala para cada país de la biblioteca, además de los artistas destacados.",
+  "entry.howto.label": "Cómo explorar",
+  "entry.howto.desktop": "Haz clic y arrastra para mirar alrededor. Haz clic en el suelo para caminar hasta allí, o usa las teclas WASD / flechas (mantén Mayús para correr). Haz clic en cualquier obra de la pared para leer sobre ella.",
+  "entry.howto.mobile": "Arrastra para mirar alrededor. Toca el suelo para caminar hasta allí. Toca cualquier obra de la pared para leer sobre ella.",
+  "entry.roomsReady": "salas listas",
+  "entry.enter": "Entrar",
+  "entry.loading": "Preparando las salas",
+  "hint.desktop": "Arrastra para mirar · <b>Haz clic en el suelo</b> para caminar · <b>Haz clic en una obra</b> para leerla",
+  "hint.mobile": "Arrastra para mirar · <b>Toca el suelo</b> para caminar · <b>Toca una obra</b> para leerla",
+  "lang.switch": "Idioma",
+  "lang.translate": "Traducir"
+,
+  "nav.explore": "Explorar",
+  "nav.voices": "Voces",
+  "nav.perspectives": "Perspectivas",
+  "nav.about": "Acerca de"
+}

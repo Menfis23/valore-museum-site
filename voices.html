@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="img/favicon.png">
+<title>Voices · Valore Library</title>
+<meta name="description" content="Real refugee and immigrant personal stories, in their own words.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="index.html" class="brand"><img src="img/logo-icon.png" alt="" class="brand-icon">Valore Library <small>A Valore Group Initiative</small></a>
+  <div class="nav-links">
+    <a href="gallery.html" data-i18n="nav.explore">Explore</a>
+    <a href="voices.html" class="active" data-i18n="nav.voices">Voices</a>
+    <a href="perspectives.html" data-i18n="nav.perspectives">Perspectives</a>
+    <a href="about.html" data-i18n="nav.about">About</a>
+    <a href="voices-submit.html" class="btn btn-primary btn-sm">Share your story</a>
+  </div>
+</nav>
+
+<section>
+  <div class="section-max">
+    <div class="section-head-row reveal">
+      <div class="section-head" style="margin-bottom:0;">
+        <span class="eyebrow">Voices</span>
+        <h2>Real stories, first-hand</h2>
+        <p>Personal accounts from refugees and immigrants, in their own words. Reviewed before publishing, with an automated first pass and human review for anything ambiguous.</p>
+      </div>
+    </div>
+
+    <div id="feedGrid" class="feed-grid"></div>
+    <div id="feedEmpty" class="feed-empty" style="display:none;">
+      No stories published yet. <a href="voices-submit.html" style="color:var(--accent-2); font-weight:700;">Be the first to share yours →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>Valore Library: A Valore Group Initiative</span>
+  <span><a href="https://valore-arc.com">valore-arc.com</a></span>
+</footer>
+
+<script>
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+  (async function () {
+    const grid = document.getElementById("feedGrid");
+    const empty = document.getElementById("feedEmpty");
+    try {
+      const res = await fetch("/api/voices");
+      const data = await res.json();
+      const items = data.items || [];
+      if (!items.length) {
+        empty.style.display = "block";
+        return;
+      }
+      items.forEach((item) => {
+        const card = document.createElement("a");
+        card.className = "feed-card";
+        card.href = `voices-story.html?id=${encodeURIComponent(item.id)}`;
+        const date = item.created_at ? new Date(item.created_at).toLocaleDateString(undefined, { year: "numeric", month: "long" }) : "";
+        card.innerHTML = `
+          <span class="tag">${escapeHtml(item.country_slug || "Voices")}</span>
+          <h3>${escapeHtml(item.title || "Untitled")}</h3>
+          <p>${escapeHtml(item.excerpt || "")}</p>
+          <span class="meta">${escapeHtml(item.display_name || "Anonymous")} &middot; ${date}</span>
+        `;
+        grid.appendChild(card);
+      });
+    } catch (error) {
+      empty.textContent = "Couldn't load stories right now. Please try again shortly.";
+      empty.style.display = "block";
+    }
+  })();
+</script>
+<script src="js/main.js"></script>
+<script src="js/site-lang.js" defer></script>
+</body>
+</html>
