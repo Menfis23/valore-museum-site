@@ -4,7 +4,17 @@
 // Auto-idles slowly, drag/swipe to spin through the rest of the photos, and
 // the credit line below always describes whichever photo is currently front.
 window.ValoreCountryGallery = (function () {
-  function init({ container, photos, countryName }) {
+  // Same extraction logic as js/gallery3d.js's titleFromCredit() — kept as
+  // its own small copy here rather than shared, since it's five lines and
+  // this file has no existing import mechanism (plain classic script, no
+  // module boundary to share one across).
+  function titleFromCredit(credit) {
+    const quoted = (credit || "").match(/[“"]([^”"]+)[”"]/);
+    if (quoted) return quoted[1];
+    return (credit || "").split(" · ")[0].trim().replace(/,\s*$/, "");
+  }
+
+  function init({ container, photos, countryName, isArtist, artistSlug }) {
     if (!container || !photos || !photos.length || !window.gsap) return;
 
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -25,10 +35,39 @@ window.ValoreCountryGallery = (function () {
     const items = photos.map((p, i) => {
       const el = document.createElement("div");
       el.className = "country-orbit-item glow-frame-hover";
-      el.innerHTML = `<img src="${p.src}" alt="${countryName}" loading="lazy">`;
+      const cartBtnHtml = isArtist ? `<button type="button" class="orbit-cart-btn" data-idx="${i}">+ Cart</button>` : "";
+      el.innerHTML = `<img src="${p.src}" alt="${countryName}" loading="lazy">${cartBtnHtml}`;
       stage.appendChild(el);
       return { el, p, index: i };
     });
+
+    // Cart buttons only exist when isArtist is set (never on country/culture
+    // photos — those were never for sale and have no artist to attribute a
+    // cart line to). e.stopPropagation() below keeps a button click from
+    // also triggering this item's own rotate-to-front click handler further
+    // down, or bubbling up to js/main.js's document-level lightbox handler.
+    if (isArtist && window.ValoreGalleryCart) {
+      const existing = window.ValoreGalleryCart.getAll();
+      items.forEach(({ el, p }) => {
+        const cartBtn = el.querySelector(".orbit-cart-btn");
+        if (!cartBtn) return;
+        const pieceTitle = titleFromCredit(p.credit);
+        const already = existing.some((it) => it.artistSlug === artistSlug && it.pieceTitle === pieceTitle);
+        if (already) {
+          cartBtn.textContent = "Added ✓";
+          cartBtn.classList.add("added");
+        }
+        cartBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          window.ValoreGalleryCart.add({
+            artistSlug, artistName: countryName,
+            pieceTitle, pieceSrc: p.src,
+          });
+          cartBtn.textContent = "Added ✓";
+          cartBtn.classList.add("added");
+        });
+      });
+    }
 
     const state = { rot: 0 };
     let dragging = false, startX = 0, startRot = 0, moved = 0;

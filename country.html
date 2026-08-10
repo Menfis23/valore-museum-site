@@ -80,6 +80,7 @@
 <script src="data/countries.js"></script>
 <script src="data/artists.js"></script>
 <script src="js/travel-transition.js"></script>
+<script src="js/gallery-cart.js"></script>
 <script src="js/country-gallery.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -136,7 +137,7 @@
     // Right column — an orbiting photo carousel (same coverflow technique as
     // the Explore flag gallery) instead of a static floating stack.
     const galleryEl = document.getElementById("countryGallery");
-    window.ValoreCountryGallery?.init({ container: galleryEl, photos: c.photos || [], countryName: c.name });
+    window.ValoreCountryGallery?.init({ container: galleryEl, photos: c.photos || [], countryName: c.name, isArtist, artistSlug: slug });
 
     document.querySelectorAll("#langToggle button").forEach((btn) => {
       btn.addEventListener("click", () => {
