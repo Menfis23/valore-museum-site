@@ -223,6 +223,16 @@ export default async (req) => {
       return json(200, { items: rows.map((r) => rowDates(r, "created_at", "reviewed_at")) });
     }
 
+    if (path === "/api/admin/gallery-inquiries") {
+      const denied = requireAdmin(req);
+      if (denied) return denied;
+      const statusFilter = url.searchParams.get("status");
+      const rows = statusFilter && VALID_INQUIRY_STATUSES.has(statusFilter)
+        ? await db.sql`SELECT * FROM gallery_inquiries WHERE status = ${statusFilter} ORDER BY created_at DESC LIMIT 200`
+        : await db.sql`SELECT * FROM gallery_inquiries ORDER BY created_at DESC LIMIT 200`;
+      return json(200, { items: rows.map((r) => rowDates(r, "created_at")) });
+    }
+
     return json(404, { error: "not found" });
   }
 
@@ -351,6 +361,24 @@ export default async (req) => {
       const newStatus = decision === "approve" ? "approved" : "rejected";
       await db.sql`UPDATE museum_submissions SET status = ${newStatus}, reviewed_at = now() WHERE id = ${Number(id)}`;
       return json(200, { ok: true, id: Number(id), status: newStatus });
+    }
+
+    m = path.match(/^\/api\/admin\/gallery-inquiries\/(\d+)\/status$/);
+    if (m) {
+      const denied = requireAdmin(req);
+      if (denied) return denied;
+      let data;
+      try {
+        data = await req.json();
+      } catch {
+        return json(400, { error: "invalid JSON body" });
+      }
+      if (!VALID_INQUIRY_STATUSES.has(data.status)) {
+        return json(400, { error: "status must be new, contacted, or closed" });
+      }
+      const [, id] = m;
+      await db.sql`UPDATE gallery_inquiries SET status = ${data.status} WHERE id = ${Number(id)}`;
+      return json(200, { ok: true, id: Number(id), status: data.status });
     }
 
     m = path.match(/^\/api\/admin\/submissions\/(\d+)\/screen-result$/);

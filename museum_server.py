@@ -357,6 +357,11 @@ class MuseumHandler(SimpleHTTPRequestHandler):
                 return
             return self._api_admin_queue(qs.get("status", [None])[0])
 
+        if path == "/api/admin/gallery-inquiries":
+            if not self._require_admin():
+                return
+            return self._api_admin_inquiries(qs.get("status", [None])[0])
+
         return super().do_GET()
 
     def do_POST(self):
@@ -374,6 +379,12 @@ class MuseumHandler(SimpleHTTPRequestHandler):
             if not self._require_admin():
                 return
             return self._api_admin_decide(int(m.group(1)), m.group(2))
+
+        m = re.match(r"^/api/admin/gallery-inquiries/(\d+)/status$", path)
+        if m:
+            if not self._require_admin():
+                return
+            return self._api_admin_inquiry_status(int(m.group(1)))
 
         m = re.match(r"^/api/admin/submissions/(\d+)/screen-result$", path)
         if m:
@@ -601,6 +612,37 @@ class MuseumHandler(SimpleHTTPRequestHandler):
             )
             conn.commit()
         self._send_json(200, {"ok": True, "id": submission_id, "status": new_status})
+
+    def _api_admin_inquiries(self, status_filter):
+        if not POSTGRES_DSN:
+            return self._send_json(200, {"items": []})
+        query = "SELECT * FROM gallery_inquiries"
+        params = []
+        if status_filter and status_filter in VALID_INQUIRY_STATUSES:
+            query += " WHERE status = %s"
+            params.append(status_filter)
+        query += " ORDER BY created_at DESC LIMIT 200"
+        with db_connect() as conn:
+            rows = conn.execute(query, params).fetchall()
+        for r in rows:
+            r["created_at"] = r["created_at"].isoformat() if r["created_at"] else None
+        self._send_json(200, {"items": rows})
+
+    def _api_admin_inquiry_status(self, inquiry_id: int):
+        try:
+            data = self._read_json_body()
+        except Exception:
+            return self._send_json(400, {"error": "invalid JSON body"})
+        new_status = data.get("status")
+        if new_status not in VALID_INQUIRY_STATUSES:
+            return self._send_json(400, {"error": "status must be new, contacted, or closed"})
+        with db_connect() as conn:
+            conn.execute(
+                "UPDATE gallery_inquiries SET status = %s WHERE id = %s",
+                (new_status, inquiry_id),
+            )
+            conn.commit()
+        self._send_json(200, {"ok": True, "id": inquiry_id, "status": new_status})
 
     def _api_screen_callback(self, submission_id: int):
         """Called by the importable n8n workflow, if the user wires it up as the
