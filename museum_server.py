@@ -58,6 +58,7 @@ PORT = int(os.getenv("MUSEUM_PORT", "8899"))
 
 VALID_TYPES = {"voices", "perspectives"}
 VALID_STATUSES = {"pending", "needs_review", "approved", "rejected"}
+VALID_INQUIRY_STATUSES = {"new", "contacted", "closed"}
 
 # Kept in sync with data/countries.js. Used to seed museum_countries and to
 # validate the country_slug on incoming submissions.
@@ -151,6 +152,19 @@ def _ensure_schema_unsafe() -> None:
             )
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS gallery_inquiries (
+                id SERIAL PRIMARY KEY,
+                buyer_name TEXT NOT NULL,
+                buyer_email TEXT NOT NULL,
+                buyer_message TEXT,
+                items JSONB NOT NULL,
+                status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','contacted','closed')),
+                created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+            )
+            """
+        )
         for c in COUNTRIES_SEED:
             conn.execute(
                 """
@@ -164,7 +178,7 @@ def _ensure_schema_unsafe() -> None:
                 c,
             )
         conn.commit()
-    print("museum_countries / museum_submissions schema ready.")
+    print("museum_countries / museum_submissions / gallery_inquiries schema ready.")
 
 
 # ---------------------------------------------------------------------------
