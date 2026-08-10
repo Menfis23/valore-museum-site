@@ -119,7 +119,7 @@ window.ValoreGalleryCart = (function () {
     }
     itemsList.innerHTML = items.map((it, i) => `
       <div class="vg-cart-item">
-        <img src="${it.pieceSrc}" alt="">
+        <img src="${escapeHtml(it.pieceSrc)}" alt="">
         <div class="vg-cart-item-info">
           <div class="t">${escapeHtml(it.pieceTitle)}</div>
           <div class="a">${escapeHtml(it.artistName)}</div>
