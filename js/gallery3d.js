@@ -723,6 +723,12 @@ function openPanel(i) {
   document.getElementById('panelStory').textContent = sec ? sec.body : room.blurb;
   document.getElementById('panelCredit').textContent = p.data.source;
   document.getElementById('panelMore').href = 'country.html?c=' + room.slug;
+  const cartBtn = document.getElementById('panelAddCart');
+  cartBtn.style.display = room.kind === 'artist' ? '' : 'none';
+  const inCart = room.kind === 'artist' && window.ValoreGalleryCart &&
+    window.ValoreGalleryCart.getAll().some((it) => it.artistSlug === room.slug && it.pieceTitle === p.data.title);
+  cartBtn.textContent = inCart ? 'Added ✓' : '+ Add to cart';
+  cartBtn.classList.toggle('added', inCart);
   panel.classList.add('open');
   panel.setAttribute('aria-hidden', 'false');
   document.getElementById('roomCaption').classList.add('hidden');
@@ -741,6 +747,18 @@ document.getElementById('nextPiece').addEventListener('click', () => {
   if (placedPieces.length) focusPiece((openIndex + 1) % placedPieces.length);
 });
 document.getElementById('resetBtn').addEventListener('click', () => { closePanel(); resetView(); });
+document.getElementById('panelAddCart').addEventListener('click', () => {
+  const room = ROOMS[currentRoom];
+  const p = placedPieces[openIndex];
+  if (!room || !p || room.kind !== 'artist' || !window.ValoreGalleryCart) return;
+  window.ValoreGalleryCart.add({
+    artistSlug: room.slug, artistName: room.title,
+    pieceTitle: p.data.title, pieceSrc: p.data.src,
+  });
+  const btn = document.getElementById('panelAddCart');
+  btn.textContent = 'Added ✓';
+  btn.classList.add('added');
+});
 const fsBtn = document.getElementById('fsBtn');
 // iOS Safari has no reliable Fullscreen API for arbitrary elements — a button
 // that silently does nothing is worse than no button, especially on mobile.
