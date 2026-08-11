@@ -58,6 +58,7 @@ PORT = int(os.getenv("MUSEUM_PORT", "8899"))
 
 VALID_TYPES = {"voices", "perspectives"}
 VALID_STATUSES = {"pending", "needs_review", "approved", "rejected"}
+VALID_INQUIRY_STATUSES = {"new", "contacted", "closed"}
 
 # Kept in sync with data/countries.js. Used to seed museum_countries and to
 # validate the country_slug on incoming submissions.
@@ -151,6 +152,19 @@ def _ensure_schema_unsafe() -> None:
             )
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS gallery_inquiries (
+                id SERIAL PRIMARY KEY,
+                buyer_name TEXT NOT NULL,
+                buyer_email TEXT NOT NULL,
+                buyer_message TEXT,
+                items JSONB NOT NULL,
+                status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','contacted','closed')),
+                created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+            )
+            """
+        )
         for c in COUNTRIES_SEED:
             conn.execute(
                 """
@@ -164,7 +178,7 @@ def _ensure_schema_unsafe() -> None:
                 c,
             )
         conn.commit()
-    print("museum_countries / museum_submissions schema ready.")
+    print("museum_countries / museum_submissions / gallery_inquiries schema ready.")
 
 
 # ---------------------------------------------------------------------------
@@ -343,6 +357,11 @@ class MuseumHandler(SimpleHTTPRequestHandler):
                 return
             return self._api_admin_queue(qs.get("status", [None])[0])
 
+        if path == "/api/admin/gallery-inquiries":
+            if not self._require_admin():
+                return
+            return self._api_admin_inquiries(qs.get("status", [None])[0])
+
         return super().do_GET()
 
     def do_POST(self):
@@ -352,11 +371,20 @@ class MuseumHandler(SimpleHTTPRequestHandler):
         if path == "/api/submissions":
             return self._api_create_submission()
 
+        if path == "/api/gallery-inquiries":
+            return self._api_create_inquiry()
+
         m = re.match(r"^/api/admin/submissions/(\d+)/(approve|reject)$", path)
         if m:
             if not self._require_admin():
                 return
             return self._api_admin_decide(int(m.group(1)), m.group(2))
+
+        m = re.match(r"^/api/admin/gallery-inquiries/(\d+)/status$", path)
+        if m:
+            if not self._require_admin():
+                return
+            return self._api_admin_inquiry_status(int(m.group(1)))
 
         m = re.match(r"^/api/admin/submissions/(\d+)/screen-result$", path)
         if m:
@@ -502,6 +530,63 @@ class MuseumHandler(SimpleHTTPRequestHandler):
         (SUBMISSIONS_IMG_DIR / filename).write_bytes(raw)
         return f"img/submissions/{filename}"
 
+    def _api_create_inquiry(self):
+        try:
+            data = self._read_json_body()
+        except Exception:
+            return self._send_json(400, {"error": "invalid JSON body"})
+
+        if data.get("website"):  # honeypot field, must stay empty
+            return self._send_json(400, {"error": "spam detected"})
+
+        buyer_name = (data.get("buyer_name") or "").strip()[:120]
+        buyer_email = (data.get("buyer_email") or "").strip()[:200]
+        buyer_message = (data.get("buyer_message") or "").strip()[:2000]
+
+        if not buyer_name or not buyer_email:
+            return self._send_json(400, {"error": "buyer_name and buyer_email are required"})
+
+        items = data.get("items")
+        if not isinstance(items, list) or not items or len(items) > 20:
+            return self._send_json(400, {"error": "items must be a non-empty array of at most 20 pieces"})
+
+        clean_items = []
+        for item in items:
+            if not isinstance(item, dict):
+                return self._send_json(400, {"error": "each item must be an object"})
+            artist_slug = (item.get("artist_slug") or "").strip()[:60]
+            artist_name = (item.get("artist_name") or "").strip()[:120]
+            piece_title = (item.get("piece_title") or "").strip()[:200]
+            piece_src = (item.get("piece_src") or "").strip()[:300]
+            if not artist_slug or not artist_name or not piece_title or not piece_src:
+                return self._send_json(400, {"error": "each item requires artist_slug, artist_name, piece_title, piece_src"})
+            clean_items.append({
+                "artist_slug": artist_slug, "artist_name": artist_name,
+                "piece_title": piece_title, "piece_src": piece_src,
+            })
+
+        if not POSTGRES_DSN:
+            return self._send_json(503, {"error": "database not configured"})
+
+        with db_connect() as conn:
+            row = conn.execute(
+                """
+                INSERT INTO gallery_inquiries (buyer_name, buyer_email, buyer_message, items, status)
+                VALUES (%s, %s, %s, %s, 'new')
+                RETURNING id
+                """,
+                (buyer_name, buyer_email, buyer_message, json.dumps(clean_items)),
+            ).fetchone()
+            inquiry_id = row["id"]
+            conn.commit()
+
+        notify_n8n(inquiry_id, {
+            "kind": "gallery_inquiry", "buyer_name": buyer_name, "buyer_email": buyer_email,
+            "buyer_message": buyer_message, "items": clean_items,
+        })
+
+        self._send_json(200, {"ok": True, "id": inquiry_id})
+
     def _api_admin_queue(self, status_filter):
         if not POSTGRES_DSN:
             return self._send_json(200, {"items": []})
@@ -527,6 +612,37 @@ class MuseumHandler(SimpleHTTPRequestHandler):
             )
             conn.commit()
         self._send_json(200, {"ok": True, "id": submission_id, "status": new_status})
+
+    def _api_admin_inquiries(self, status_filter):
+        if not POSTGRES_DSN:
+            return self._send_json(200, {"items": []})
+        query = "SELECT * FROM gallery_inquiries"
+        params = []
+        if status_filter and status_filter in VALID_INQUIRY_STATUSES:
+            query += " WHERE status = %s"
+            params.append(status_filter)
+        query += " ORDER BY created_at DESC LIMIT 200"
+        with db_connect() as conn:
+            rows = conn.execute(query, params).fetchall()
+        for r in rows:
+            r["created_at"] = r["created_at"].isoformat() if r["created_at"] else None
+        self._send_json(200, {"items": rows})
+
+    def _api_admin_inquiry_status(self, inquiry_id: int):
+        try:
+            data = self._read_json_body()
+        except Exception:
+            return self._send_json(400, {"error": "invalid JSON body"})
+        new_status = data.get("status")
+        if new_status not in VALID_INQUIRY_STATUSES:
+            return self._send_json(400, {"error": "status must be new, contacted, or closed"})
+        with db_connect() as conn:
+            conn.execute(
+                "UPDATE gallery_inquiries SET status = %s WHERE id = %s",
+                (new_status, inquiry_id),
+            )
+            conn.commit()
+        self._send_json(200, {"ok": True, "id": inquiry_id, "status": new_status})
 
     def _api_screen_callback(self, submission_id: int):
         """Called by the importable n8n workflow, if the user wires it up as the

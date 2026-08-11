@@ -123,6 +123,12 @@
     color:rgba(241,230,206,.45);margin:14px 0 8px;}
   .story{font-size:14px;line-height:1.68;color:rgba(241,230,206,.82);margin:0 0 16px;text-wrap:pretty;}
   .credit{font-size:11px;line-height:1.55;color:rgba(241,230,206,.45);padding-top:14px;border-top:1px solid var(--hairline);}
+  .panel-cart-btn{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:10px 16px;
+    border-radius:8px;border:1px solid var(--saffron);background:rgba(184,121,26,.14);color:var(--saffron);
+    font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;
+    font-family:inherit;transition:background .18s ease;}
+  .panel-cart-btn:hover{background:rgba(184,121,26,.24);}
+  .panel-cart-btn.added{border-color:#8FCB9C;color:#8FCB9C;background:rgba(60,140,90,.12);}
   .panel-nav{display:flex;gap:8px;padding:14px 18px;border-top:1px solid var(--hairline);flex:none;
     max-width:760px;width:100%;margin:0 auto;}
   .panel-nav button{flex:1;appearance:none;border:1px solid var(--hairline);background:transparent;color:var(--paper);
@@ -303,6 +309,7 @@
     <div class="sec-head" id="panelSectionHead"></div>
     <p class="story" id="panelStory"></p>
     <p class="credit" id="panelCredit"></p>
+    <button class="panel-cart-btn" id="panelAddCart" type="button">+ Add to cart</button>
     <p style="margin:14px 0 0;font-size:12px;"><a id="panelMore" href="#">Read the full story</a></p>
   </div>
   <div class="panel-nav">
@@ -344,6 +351,7 @@
 
 <script src="data/countries.js"></script>
 <script src="data/artists.js"></script>
+<script src="js/gallery-cart.js"></script>
 <script type="module" src="js/gallery3d.js"></script>
 </body>
 </html>

@@ -9,6 +9,7 @@ import { getStore } from "@netlify/blobs";
 
 const VALID_TYPES = new Set(["voices", "perspectives"]);
 const VALID_STATUSES = new Set(["pending", "needs_review", "approved", "rejected"]);
+const VALID_INQUIRY_STATUSES = new Set(["new", "contacted", "closed"]);
 const VALID_SLUGS = new Set([
   "iraq", "eritrea", "south_sudan", "ethiopia", "venezuela", "haiti", "somalia",
   "myanmar", "afghanistan", "bhutan", "dr_congo", "nigeria", "syria", "vietnam", "ukraine",
@@ -222,6 +223,16 @@ export default async (req) => {
       return json(200, { items: rows.map((r) => rowDates(r, "created_at", "reviewed_at")) });
     }
 
+    if (path === "/api/admin/gallery-inquiries") {
+      const denied = requireAdmin(req);
+      if (denied) return denied;
+      const statusFilter = url.searchParams.get("status");
+      const rows = statusFilter && VALID_INQUIRY_STATUSES.has(statusFilter)
+        ? await db.sql`SELECT * FROM gallery_inquiries WHERE status = ${statusFilter} ORDER BY created_at DESC LIMIT 200`
+        : await db.sql`SELECT * FROM gallery_inquiries ORDER BY created_at DESC LIMIT 200`;
+      return json(200, { items: rows.map((r) => rowDates(r, "created_at")) });
+    }
+
     return json(404, { error: "not found" });
   }
 
@@ -293,6 +304,55 @@ export default async (req) => {
       return json(200, { ok: true, id: submissionId, status: finalStatus });
     }
 
+    if (path === "/api/gallery-inquiries") {
+      let data;
+      try {
+        data = await req.json();
+      } catch {
+        return json(400, { error: "invalid JSON body" });
+      }
+
+      if (data.website) return json(400, { error: "spam detected" }); // honeypot
+
+      const buyerName = (data.buyer_name || "").trim().slice(0, 120);
+      const buyerEmail = (data.buyer_email || "").trim().slice(0, 200);
+      const buyerMessage = (data.buyer_message || "").trim().slice(0, 2000);
+
+      if (!buyerName || !buyerEmail) return json(400, { error: "buyer_name and buyer_email are required" });
+
+      const items = data.items;
+      if (!Array.isArray(items) || !items.length || items.length > 20) {
+        return json(400, { error: "items must be a non-empty array of at most 20 pieces" });
+      }
+
+      const cleanItems = [];
+      for (const item of items) {
+        if (typeof item !== "object" || item === null) return json(400, { error: "each item must be an object" });
+        const artistSlug = (item.artist_slug || "").trim().slice(0, 60);
+        const artistName = (item.artist_name || "").trim().slice(0, 120);
+        const pieceTitle = (item.piece_title || "").trim().slice(0, 200);
+        const pieceSrc = (item.piece_src || "").trim().slice(0, 300);
+        if (!artistSlug || !artistName || !pieceTitle || !pieceSrc) {
+          return json(400, { error: "each item requires artist_slug, artist_name, piece_title, piece_src" });
+        }
+        cleanItems.push({ artist_slug: artistSlug, artist_name: artistName, piece_title: pieceTitle, piece_src: pieceSrc });
+      }
+
+      const [inserted] = await db.sql`
+        INSERT INTO gallery_inquiries (buyer_name, buyer_email, buyer_message, items, status)
+        VALUES (${buyerName}, ${buyerEmail}, ${buyerMessage}, ${JSON.stringify(cleanItems)}, 'new')
+        RETURNING id
+      `;
+      const inquiryId = inserted.id;
+
+      notifyN8n(inquiryId, {
+        kind: "gallery_inquiry", buyer_name: buyerName, buyer_email: buyerEmail,
+        buyer_message: buyerMessage, items: cleanItems,
+      });
+
+      return json(200, { ok: true, id: inquiryId });
+    }
+
     let m = path.match(/^\/api\/admin\/submissions\/(\d+)\/(approve|reject)$/);
     if (m) {
       const denied = requireAdmin(req);
@@ -301,6 +361,24 @@ export default async (req) => {
       const newStatus = decision === "approve" ? "approved" : "rejected";
       await db.sql`UPDATE museum_submissions SET status = ${newStatus}, reviewed_at = now() WHERE id = ${Number(id)}`;
       return json(200, { ok: true, id: Number(id), status: newStatus });
+    }
+
+    m = path.match(/^\/api\/admin\/gallery-inquiries\/(\d+)\/status$/);
+    if (m) {
+      const denied = requireAdmin(req);
+      if (denied) return denied;
+      let data;
+      try {
+        data = await req.json();
+      } catch {
+        return json(400, { error: "invalid JSON body" });
+      }
+      if (!VALID_INQUIRY_STATUSES.has(data.status)) {
+        return json(400, { error: "status must be new, contacted, or closed" });
+      }
+      const [, id] = m;
+      await db.sql`UPDATE gallery_inquiries SET status = ${data.status} WHERE id = ${Number(id)}`;
+      return json(200, { ok: true, id: Number(id), status: data.status });
     }
 
     m = path.match(/^\/api\/admin\/submissions\/(\d+)\/screen-result$/);
