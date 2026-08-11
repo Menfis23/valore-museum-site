@@ -1155,12 +1155,18 @@ footer a{font-weight:700; color:var(--saffron);}
 .admin-login{max-width:360px; margin:80px auto; text-align:center;}
 .admin-login input{margin-bottom:14px;}
 .queue-tabs{display:flex; gap:10px; margin-bottom:28px; flex-wrap:wrap;}
-.queue-tab{
+.queue-tab, .admin-view-tab{
   padding:9px 18px; border-radius:999px; font-size:13px; font-weight:700;
   border:1px solid rgba(42,29,22,.2); cursor:pointer; background:transparent; color:var(--paper-on-ink-70);
   font-family:inherit;
 }
-.queue-tab.active{background:var(--accent); border-color:var(--accent); color:#fff;}
+.queue-tab.active, .admin-view-tab.active{background:var(--accent); border-color:var(--accent); color:#fff;}
+.inquiry-piece{display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:6px;}
+.inquiry-piece img{width:32px; height:32px; object-fit:cover; border-radius:4px; flex:none;}
+.inquiry-status-select{
+  padding:6px 10px; border-radius:6px; border:1px solid rgba(42,29,22,.2);
+  background:#fff; color:var(--paper-on-ink); font-family:inherit; font-size:13px;
+}
 .queue-item{
   border:1px solid rgba(42,29,22,.14); border-radius:8px; padding:22px;
   margin-bottom:16px; background:rgba(255,255,255,.4);
