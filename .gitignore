@@ -5,3 +5,4 @@ node_modules/
 pid.txt
 __pycache__/
 Gallery room improvements.zip
+.claude/
