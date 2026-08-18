@@ -869,6 +869,9 @@ section{padding:clamp(64px,9vw,120px) clamp(20px,6vw,80px);}
 .country-hero .tag{color:#E8B923; font-weight:700; letter-spacing:.12em; text-transform:uppercase; font-size:12px;}
 .country-hero h1{font-size:clamp(36px,6vw,64px); margin:14px 0 10px; color:var(--text-on-dark);}
 .country-hero .native-name{font-family:'Newsreader',serif; font-style:italic; font-size:20px; color:var(--text-on-dark-70);}
+.country-hero .artist-social-link{display:block; margin-top:10px; font-size:14px; font-weight:600; color:#E8B923; text-decoration:none;}
+.country-hero .artist-social-link:hover{text-decoration:underline;}
+.country-hero .artist-social-link[hidden]{display:none;}
 
 .lang-toggle{
   display:inline-flex; border:1px solid rgba(243,231,211,.3); border-radius:999px; overflow:hidden;

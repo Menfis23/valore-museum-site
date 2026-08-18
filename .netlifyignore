@@ -21,3 +21,7 @@ node_modules/
 # actual deployed asset and is intentionally NOT excluded here.
 generate_museum_audio.py
 scripts/
+# Claude Code working directory (worktrees, session state) — same failure
+# mode as node_modules/ above: a leftover merged worktree in here once added
+# 68MB/243 files to every deploy's hash for zero runtime purpose.
+.claude/

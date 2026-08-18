@@ -24,6 +24,7 @@ window.VALORE_ARTISTS = {
     heroImage: "img/artists/bahati/1.jpg",
     langLabel: "English",
     accentClass: "artist-bahati",
+    social: { label: "Instagram", handle: "@bhtart", url: "https://instagram.com/bhtart" },
     sections: [
       {
         heading: { en: "A New Room in the Gallery", native: "A New Room in the Gallery" },

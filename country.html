@@ -43,6 +43,7 @@
       <span class="tag" id="countryTag">Loading…</span>
       <h1 id="countryName"></h1>
       <div class="native-name" id="countryNative"></div>
+      <a class="artist-social-link" id="countrySocial" href="#" target="_blank" rel="noopener" hidden></a>
       <div class="lang-toggle" id="langToggle">
         <button data-lang="en" class="active">English</button>
         <button data-lang="native" id="nativeLangBtn">Native</button>
@@ -113,6 +114,14 @@
     // data/artists.js's comment on `noTranslation`) — hide the toggle rather
     // than show one that just re-renders the same English text.
     if (c.noTranslation) document.getElementById("langToggle").style.display = "none";
+    // Optional artist contact link (data/artists.js `social` field) — only
+    // Bahati has one so far, so this stays hidden for every other entry.
+    const socialEl = document.getElementById("countrySocial");
+    if (c.social) {
+      socialEl.href = c.social.url;
+      socialEl.textContent = `Find ${c.name} on ${c.social.label}: ${c.social.handle}`;
+      socialEl.hidden = false;
+    }
     if (isArtist) {
       document.getElementById("countryTranslationNote").style.display = "none";
       document.getElementById("countryVoicesCta").innerHTML =
