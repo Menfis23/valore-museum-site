@@ -1,0 +1,6 @@
+# Netlify Database fingerprints each migration file byte-for-byte and refuses
+# to deploy if an already-applied migration "changed". Line-ending conversion
+# (e.g. Git on Windows turning LF into CRLF) counts as a change, so these files
+# must never be converted. 001_init was applied with LF endings and
+# 002_gallery_inquiries with CRLF endings; keep both exactly as committed.
+netlify/database/migrations/** -text
