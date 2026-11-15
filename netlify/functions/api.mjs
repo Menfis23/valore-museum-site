@@ -6,6 +6,7 @@
 // the read side), since a function has no persistent local disk.
 import { getDatabase } from "@netlify/database";
 import { getStore } from "@netlify/blobs";
+import { createHash } from "node:crypto";
 
 const VALID_TYPES = new Set(["voices", "perspectives"]);
 const VALID_STATUSES = new Set(["pending", "needs_review", "approved", "rejected"]);
@@ -18,7 +19,11 @@ const ALLOWED_IMAGE_TYPES = { "image/png": "png", "image/jpeg": "jpg", "image/we
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || "";
-const ANTHROPIC_MODEL = process.env.ARC_ANTHROPIC_MODEL || "claude-opus-4-8";
+// Moderation is a short yes/no-style classification, so it uses the small,
+// fast, low-cost model. (The old ARC_ANTHROPIC_MODEL setting pointed at Opus,
+// the most expensive model, for every public submission; it's intentionally no
+// longer read here. Set MODERATION_MODEL in Netlify to override.)
+const ANTHROPIC_MODEL = process.env.MODERATION_MODEL || "claude-haiku-5-5";
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
 const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || "";
@@ -56,6 +61,34 @@ function requireAdmin(req) {
   if (isAdmin(req)) return null;
   return new Response(null, { status: 401, headers: { "WWW-Authenticate": 'Basic realm="Valore Library Admin"' } });
 }
+
+// ---------------------------------------------------------------------------
+// Simple per-visitor rate limits, so nobody can script thousands of
+// submissions (each one costs an AI screening call) or guess the admin
+// password. Counts live in Netlify Blobs, keyed by a hash of the visitor's IP
+// (the raw IP is never stored) and the current time window.
+// ---------------------------------------------------------------------------
+function clientIp(req) {
+  return req.headers.get("x-nf-client-connection-ip")
+    || (req.headers.get("x-forwarded-for") || "").split(",")[0].trim()
+    || "unknown";
+}
+async function overLimit(req, bucket, max, windowSeconds) {
+  try {
+    const store = getStore("rate-limits");
+    const who = createHash("sha256").update(`valore-rl:${clientIp(req)}`).digest("hex").slice(0, 24);
+    const window = Math.floor(Date.now() / 1000 / windowSeconds);
+    const key = `${bucket}/${who}/${window}`;
+    const count = Number((await store.get(key)) || 0);
+    if (count >= max) return true;
+    await store.set(key, String(count + 1));
+    return false;
+  } catch (error) {
+    console.error("rate limit check failed, allowing request:", error);
+    return false;
+  }
+}
+const tooMany = () => json(429, { error: "Too many requests. Please wait a while and try again." });
 
 // ---------------------------------------------------------------------------
 // AI moderation screening — same call/prompt shape as museum_server.py's
@@ -101,6 +134,7 @@ async function callAnthropicMessages(system, userText) {
       messages: [{ role: "user", content: userText }],
     }),
   });
+  if (!res.ok) throw new Error(`AI screening request failed (HTTP ${res.status})`);
   const payload = await res.json();
   return (payload.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
 }
@@ -244,6 +278,7 @@ export default async (req) => {
   // ---- POST routes ----
   if (req.method === "POST") {
     if (path === "/api/submissions") {
+      if (await overLimit(req, "submissions", 5, 60 * 60)) return tooMany();
       let data;
       try {
         data = await req.json();
@@ -310,6 +345,7 @@ export default async (req) => {
     }
 
     if (path === "/api/gallery-inquiries") {
+      if (await overLimit(req, "inquiries", 10, 60 * 60)) return tooMany();
       let data;
       try {
         data = await req.json();
