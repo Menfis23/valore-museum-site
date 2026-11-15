@@ -206,11 +206,16 @@ export default async (req) => {
     m = path.match(/^\/api\/(voices|perspectives)\/(\d+)$/);
     if (m) {
       const [, kind, id] = m;
+      // Public endpoint: list only the fields the story pages display. Never
+      // SELECT * here: the row also holds contact_email, moderator_notes and
+      // ai_screening, which are for the admin panel only.
       const rows = await db.sql`
-        SELECT * FROM museum_submissions WHERE id = ${Number(id)} AND type = ${kind} AND status = 'approved'
+        SELECT id, type, country_slug, display_name, language, title,
+               original_text, english_text, image_path, created_at
+        FROM museum_submissions WHERE id = ${Number(id)} AND type = ${kind} AND status = 'approved'
       `;
       if (!rows.length) return json(404, { error: "not found" });
-      return json(200, rowDates(rows[0], "created_at", "reviewed_at"));
+      return json(200, rowDates(rows[0], "created_at"));
     }
 
     if (path === "/api/admin/queue") {
