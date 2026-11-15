@@ -101,14 +101,30 @@ const isCoarse = window.matchMedia('(pointer: coarse)').matches;
 
 const stage = document.getElementById('stage');
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+// 1.5 instead of 2: on sharp (retina/4K) screens this draws ~44% fewer pixels
+// per frame, with antialiasing on the difference is hard to see.
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 0.98;
 renderer.shadowMap.enabled = !isCoarse;
 renderer.shadowMap.type = THREE.PCFShadowMap; // PCFSoftShadowMap is deprecated in this three.js version, falls back to this anyway
+// Nothing in a room moves except the visitor, so shadows never change while
+// you walk around. Computing them every frame meant re-drawing the whole room
+// once per shadow-casting light (up to 8x) on every frame. Now they are
+// computed once when a room is built (see invalidate(..., true) in showRoom).
+renderer.shadowMap.autoUpdate = false;
 stage.appendChild(renderer.domElement);
+
+// Render on demand: tick() only draws a frame when the camera is moving or
+// something in the scene just changed. Standing still costs ~nothing, which
+// matters most on school laptops and integrated graphics.
+let redrawFrames = 2;
+function invalidate(frames = 2, shadows = false) {
+  redrawFrames = Math.max(redrawFrames, frames);
+  if (shadows) renderer.shadowMap.needsUpdate = true;
+}
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0d0a08);
@@ -122,6 +138,7 @@ const loadBar = document.getElementById('loadBar');
 const loadNote = document.getElementById('loadNote');
 manager.onProgress = (_u, loaded, total) => {
   if (loadBar) loadBar.style.width = Math.round((loaded / total) * 100) + '%';
+  invalidate(); // a texture just arrived: show it
 };
 
 /* ============================================================
@@ -517,6 +534,7 @@ async function showRoom(index, opts = {}) {
   }
   closePanel();
   resetView(true);
+  invalidate(3, true); // new room: redraw and recompute shadows once
   switching = false;
 }
 
@@ -949,7 +967,12 @@ function tick() {
   pitch += (pitchT - pitch) * k;
   camera.rotation.set(pitch, yaw, 0, 'YXZ');
 
-  renderer.render(scene, camera);
+  const moving = glide || walkVel.lengthSq() > 1e-8
+    || Math.abs(yawT - yaw) > 1e-5 || Math.abs(pitchT - pitch) > 1e-5;
+  if (moving || redrawFrames > 0) {
+    renderer.render(scene, camera);
+    if (redrawFrames > 0) redrawFrames--;
+  }
   requestAnimationFrame(tick);
 }
 
@@ -957,6 +980,7 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  invalidate();
 });
 
 /* ============================================================
