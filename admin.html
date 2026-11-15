@@ -86,13 +86,16 @@
   const viewTabs = document.querySelectorAll(".admin-view-tab");
   const inquiryTabs = document.querySelectorAll("#inquiriesView .queue-tab");
 
-  function authHeader() {
-    const creds = sessionStorage.getItem("valoreAdminAuth");
-    return creds ? { Authorization: `Basic ${creds}` } : {};
-  }
+  // Logging in sets a secure, expiring session cookie that this page's scripts
+  // can't read; the browser sends it automatically on /api/admin requests.
+  // The password is never stored in the browser.
+  function authHeader() { return {}; }
+
+  // Clear any password saved by the old version of this page.
+  try { sessionStorage.removeItem("valoreAdminAuth"); } catch (e) {}
 
   async function tryAuth() {
-    const res = await fetch("/api/admin/queue?status=pending", { headers: authHeader() });
+    const res = await fetch("/api/admin/queue?status=pending");
     if (res.status === 401) return false;
     loginPanel.style.display = "none";
     queuePanel.style.display = "block";
@@ -100,22 +103,32 @@
     return true;
   }
 
-  loginBtn.addEventListener("click", async () => {
+  async function logIn() {
     const user = document.getElementById("loginUser").value.trim();
-    const pass = document.getElementById("loginPass").value;
-    const creds = btoa(`${user}:${pass}`);
-    sessionStorage.setItem("valoreAdminAuth", creds);
+    const passField = document.getElementById("loginPass");
     loginError.classList.remove("visible");
-    const ok = await tryAuth();
-    if (!ok) {
-      sessionStorage.removeItem("valoreAdminAuth");
-      loginError.textContent = "Wrong username or password.";
+    loginBtn.disabled = true;
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ username: user, password: passField.value }),
+      });
+      passField.value = "";
+      if (res.ok && await tryAuth()) return;
+      loginError.textContent = res.status === 429
+        ? "Too many attempts. Please wait 15 minutes and try again."
+        : "Wrong username or password.";
       loginError.classList.add("visible");
+    } finally {
+      loginBtn.disabled = false;
     }
-  });
+  }
+  loginBtn.addEventListener("click", logIn);
+  document.getElementById("loginPass").addEventListener("keydown", (e) => { if (e.key === "Enter") logIn(); });
 
-  logoutBtn.addEventListener("click", () => {
-    sessionStorage.removeItem("valoreAdminAuth");
+  logoutBtn.addEventListener("click", async () => {
+    await fetch("/api/admin/logout", { method: "POST" });
     queuePanel.style.display = "none";
     loginPanel.style.display = "block";
   });
@@ -261,7 +274,7 @@
     });
   }
 
-  if (sessionStorage.getItem("valoreAdminAuth")) tryAuth();
+  tryAuth(); // still logged in from earlier? (the session lasts up to 8 hours)
 })();
 </script>
 </body>

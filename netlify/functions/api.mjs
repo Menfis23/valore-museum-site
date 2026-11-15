@@ -6,7 +6,7 @@
 // the read side), since a function has no persistent local disk.
 import { getDatabase } from "@netlify/database";
 import { getStore } from "@netlify/blobs";
-import { createHash } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 
 const VALID_TYPES = new Set(["voices", "perspectives"]);
 const VALID_STATUSES = new Set(["pending", "needs_review", "approved", "rejected"]);
@@ -41,25 +41,46 @@ function timingSafeEqual(a, b) {
   return diff === 0;
 }
 
+// ---------------------------------------------------------------------------
+// Admin sessions. Logging in (POST /api/admin/login) checks the password once
+// and sets a signed, expiring cookie that page scripts cannot read (HttpOnly).
+// The password itself is never stored in the browser. Changing ADMIN_PASSWORD
+// in Netlify instantly logs out every existing session, because it is part of
+// the signing key.
+// ---------------------------------------------------------------------------
+const SESSION_COOKIE = "valore_admin";
+const SESSION_TTL_SECONDS = 8 * 60 * 60;
+
+function signSession(exp) {
+  return createHmac("sha256", `valore-admin-session:${ADMIN_PASSWORD}`).update(String(exp)).digest("base64url");
+}
+function makeSessionToken() {
+  const exp = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
+  return `${exp}.${signSession(exp)}`;
+}
+function readCookie(req, name) {
+  const header = req.headers.get("cookie") || "";
+  for (const part of header.split(";")) {
+    const [k, ...v] = part.trim().split("=");
+    if (k === name) return v.join("=");
+  }
+  return "";
+}
+function sessionCookie(value, maxAge) {
+  return `${SESSION_COOKIE}=${value}; Path=/api/admin; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}`;
+}
+
 function isAdmin(req) {
   if (!ADMIN_PASSWORD) return false;
-  const auth = req.headers.get("authorization") || "";
-  if (!auth.startsWith("Basic ")) return false;
-  let decoded;
-  try {
-    decoded = Buffer.from(auth.slice(6), "base64").toString("utf-8");
-  } catch {
-    return false;
-  }
-  const idx = decoded.indexOf(":");
-  if (idx < 0) return false;
-  const user = decoded.slice(0, idx), pwd = decoded.slice(idx + 1);
-  return timingSafeEqual(user, ADMIN_USERNAME) && timingSafeEqual(pwd, ADMIN_PASSWORD);
+  const [exp, sig] = readCookie(req, SESSION_COOKIE).split(".");
+  if (!exp || !sig || !/^\d+$/.test(exp)) return false;
+  if (Number(exp) < Date.now() / 1000) return false;
+  return timingSafeEqual(sig, signSession(exp));
 }
 
 function requireAdmin(req) {
   if (isAdmin(req)) return null;
-  return new Response(null, { status: 401, headers: { "WWW-Authenticate": 'Basic realm="Valore Library Admin"' } });
+  return json(401, { error: "login required" });
 }
 
 // ---------------------------------------------------------------------------
@@ -277,6 +298,31 @@ export default async (req) => {
 
   // ---- POST routes ----
   if (req.method === "POST") {
+    if (path === "/api/admin/login") {
+      if (await overLimit(req, "admin-login", 10, 15 * 60)) return tooMany();
+      let data;
+      try {
+        data = await req.json();
+      } catch {
+        return json(400, { error: "invalid JSON body" });
+      }
+      const user = String(data.username || ""), pwd = String(data.password || "");
+      if (!ADMIN_PASSWORD || !timingSafeEqual(user, ADMIN_USERNAME) || !timingSafeEqual(pwd, ADMIN_PASSWORD)) {
+        return json(401, { error: "wrong username or password" });
+      }
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { "content-type": "application/json", "set-cookie": sessionCookie(makeSessionToken(), SESSION_TTL_SECONDS) },
+      });
+    }
+
+    if (path === "/api/admin/logout") {
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { "content-type": "application/json", "set-cookie": sessionCookie("", 0) },
+      });
+    }
+
     if (path === "/api/submissions") {
       if (await overLimit(req, "submissions", 5, 60 * 60)) return tooMany();
       let data;
