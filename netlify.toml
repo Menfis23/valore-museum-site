@@ -131,3 +131,22 @@
   to = "/index.html"
   status = 404
   force = true
+
+# Let browsers keep images, audio and the 3D engine for a day instead of
+# re-checking every file on every visit (then refresh quietly in the
+# background for up to a week). File names aren't versioned, so this is kept
+# short: a changed image shows up for everyone within a day.
+[[headers]]
+  for = "/img/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+
+[[headers]]
+  for = "/audio/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+
+[[headers]]
+  for = "/js/vendor/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
